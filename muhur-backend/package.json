@@ -15,13 +15,23 @@
   "type": "commonjs",
   "dependencies": {
     "@fastify/multipart": "^10.1.0",
+    "@prisma/client": "^6.19.3",
     "fastify": "^5.11.2"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
     "dotenv": "^17.4.2",
+    "dotenv-cli": "^11.0.0",
+    "prisma": "^6.19.3",
     "tsx": "^4.23.8",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true
   }
 }

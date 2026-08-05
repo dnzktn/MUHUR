@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id            String                 @id @default(uuid())
+  name          String
+  customers     Customer[]
+  professionals VerifiedProfessional[]
+  documents     Document[]
+  orders        Order[]
+  createdAt     DateTime               @default(now())
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  CORPORATE
+}
+
+model Customer {
+  id        String       @id @default(uuid())
+  tenantId  String
+  tenant    Tenant       @relation(fields: [tenantId], references: [id])
+  name      String
+  email     String       @unique
+  phone     String?
+  type      CustomerType @default(INDIVIDUAL)
+  orders    Order[]
+  documents Document[]
+  createdAt DateTime     @default(now())
+}
+
+model VerifiedProfessional {
+  id                String             @id @default(uuid())
+  tenantId          String
+  tenant            Tenant             @relation(fields: [tenantId], references: [id])
+  name              String
+  email             String             @unique
+  passwordHash      String
+  languages         String[]
+  region            String?
+  capacity          Int                @default(10)
+  rate              Float?
+  assignedOrders    Order[]
+  finalTranslations FinalTranslation[]
+  createdAt         DateTime           @default(now())
+}
+
+enum DocumentFormat {
+  PDF
+  IMAGE
+  DOCX
+  PASTED_TEXT
+}
+
+enum DocumentStatus {
+  RECEIVED
+  EXTRACTING
+  READY
+  FAILED
+}
+
+model Document {
+  id               String            @id @default(uuid())
+  tenantId         String
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  customerId       String
+  customer         Customer          @relation(fields: [customerId], references: [id])
+  orderId          String
+  order            Order             @relation(fields: [orderId], references: [id])
+  sourceFormat     DocumentFormat
+  fileUrl          String?
+  extractedText    String?
+  sourceLang       String
+  targetLang       String
+  status           DocumentStatus    @default(RECEIVED)
+  drafts           Draft[]
+  finalTranslation FinalTranslation?
+  createdAt        DateTime          @default(now())
+}
+
+enum OrderStatus {
+  RECEIVED
+  AI_DRAFTING
+  DRAFTS_READY
+  IN_REVIEW
+  APPROVED
+  SENT
+  DELIVERED
+}
+
+enum ServiceType {
+  STANDARD
+  EXPRESS
+}
+
+model Order {
+  id                     String                 @id @default(uuid())
+  tenantId               String
+  tenant                 Tenant                 @relation(fields: [tenantId], references: [id])
+  customerId             String
+  customer               Customer               @relation(fields: [customerId], references: [id])
+  status                 OrderStatus            @default(RECEIVED)
+  serviceType            ServiceType            @default(STANDARD)
+  notary                 Boolean                @default(false)
+  apostille              Boolean                @default(false)
+  pageCount              Int                    @default(1)
+  priceTotal             Float                  @default(0)
+  assignedProfessionalId String?
+  assignedProfessional   VerifiedProfessional?  @relation(fields: [assignedProfessionalId], references: [id])
+  documents              Document[]
+  payments               Payment[]
+  createdAt              DateTime               @default(now())
+}
+
+enum DraftStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+model Draft {
+  id         String      @id @default(uuid())
+  documentId String
+  document   Document    @relation(fields: [documentId], references: [id])
+  provider   String
+  draftText  String?
+  status     DraftStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+}
+
+model FinalTranslation {
+  id         String               @id @default(uuid())
+  documentId String               @unique
+  document   Document             @relation(fields: [documentId], references: [id])
+  editedById String
+  editedBy   VerifiedProfessional @relation(fields: [editedById], references: [id])
+  finalText  String
+  signedAt   DateTime             @default(now())
+}
+
+enum PaymentMethod {
+  CARD
+  IBAN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  orderId   String
+  order     Order         @relation(fields: [orderId], references: [id])
+  method    PaymentMethod
+  status    PaymentStatus @default(PENDING)
+  amount    Float
+  createdAt DateTime      @default(now())
+}

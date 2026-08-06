@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { prisma } from "../prisma";
 import { extractDocxText } from "../services/extraction.service";
 import type { TranslationProvider } from "../services/gemini.service";
+import { requireAuth } from "../lib/auth-guard";
 
 interface DocumentsRoutesOptions {
   geminiService: TranslationProvider;
@@ -111,4 +112,31 @@ export async function documentsRoutes(app: FastifyInstance, opts: DocumentsRoute
 
     return reply.code(201).send({ orderId: order.id, documentId: document.id, draftId: draft.id });
   });
+
+  app.post(
+    "/api/documents/:id/suggest",
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const { text, context } = request.body as { text: string; context: string };
+
+      const document = await prisma.document.findUnique({ where: { id } });
+      if (!document) {
+        return reply.code(404).send({ error: "Document not found" });
+      }
+
+      try {
+        const suggestions = await opts.geminiService.suggest({
+          text,
+          context,
+          sourceLang: document.sourceLang,
+          targetLang: document.targetLang,
+        });
+        return reply.send({ suggestions });
+      } catch (err) {
+        request.log.error(err, "Gemini suggestion failed");
+        return reply.code(502).send({ error: "AI suggestion failed, please retry" });
+      }
+    }
+  );
 }

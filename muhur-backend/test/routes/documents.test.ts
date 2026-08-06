@@ -5,6 +5,8 @@ import { buildApp } from "../../src/app";
 import { prisma } from "../../src/prisma";
 import { resetDb } from "../helpers/reset-db";
 import type { TranslationProvider } from "../../src/services/gemini.service";
+import { signAuthToken } from "../../src/lib/jwt";
+import { hashPassword } from "../../src/lib/password";
 
 function fakeProvider(overrides: Partial<TranslationProvider> = {}): TranslationProvider {
   return {
@@ -142,5 +144,92 @@ describe("POST /api/documents", () => {
 
     const order = await prisma.order.findFirst({ where: { customerId: customer.id } });
     expect(order?.status).toBe("RECEIVED");
+  });
+});
+
+describe("POST /api/documents/:id/suggest", () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  async function seedDocumentAndProfessional() {
+    const tenant = await prisma.tenant.create({ data: { name: "Mühür" } });
+    const customer = await prisma.customer.create({
+      data: { tenantId: tenant.id, name: "Demo Müşteri", email: "demo@musteri.com" },
+    });
+    const professional = await prisma.verifiedProfessional.create({
+      data: {
+        tenantId: tenant.id,
+        name: "Yağmur",
+        email: "yagmur@muhur.com",
+        passwordHash: await hashPassword("changeme123"),
+        languages: ["TR", "EN"],
+      },
+    });
+    const order = await prisma.order.create({
+      data: { tenantId: tenant.id, customerId: customer.id, status: "DRAFTS_READY" },
+    });
+    const document = await prisma.document.create({
+      data: {
+        tenantId: tenant.id,
+        customerId: customer.id,
+        orderId: order.id,
+        sourceFormat: "PASTED_TEXT",
+        extractedText: "Merhaba dünya",
+        sourceLang: "TR",
+        targetLang: "EN",
+        status: "READY",
+      },
+    });
+    return { document, professional };
+  }
+
+  it("rejects requests without a token", async () => {
+    const { document } = await seedDocumentAndProfessional();
+    const app = buildApp({ geminiService: fakeProvider() });
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/documents/${document.id}/suggest`,
+      payload: { text: "Merhaba", context: "Merhaba dünya" },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("returns suggestions for an authenticated request", async () => {
+    const { document, professional } = await seedDocumentAndProfessional();
+    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const geminiService = fakeProvider({
+      suggest: vi.fn().mockResolvedValue(["Hello", "Hi", "Greetings"]),
+    });
+    const app = buildApp({ geminiService });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/documents/${document.id}/suggest`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { text: "Merhaba", context: "Merhaba dünya" },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json().suggestions).toEqual(["Hello", "Hi", "Greetings"]);
+  });
+
+  it("returns 404 for an unknown document id", async () => {
+    const { professional } = await seedDocumentAndProfessional();
+    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const app = buildApp({ geminiService: fakeProvider() });
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/documents/00000000-0000-0000-0000-000000000000/suggest",
+      headers: { authorization: `Bearer ${token}` },
+      payload: { text: "Merhaba", context: "Merhaba dünya" },
+    });
+
+    expect(res.statusCode).toBe(404);
   });
 });

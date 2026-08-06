@@ -26,6 +26,9 @@ This machine's environment required three deviations from the exact values writt
 - **Postgres host port is `5433`, not `5432`** (port 5432 was already in use by another container on this machine). `docker-compose.yml`, `.env`, `.env.example`, and `.env.test` all use `5433`.
 - **Prisma is pinned to `6.19.3`**, not latest. Prisma 7 removed `datasource.url` support in `schema.prisma` in favor of `prisma.config.ts` + a driver adapter, which is incompatible with this plan's schema syntax. Install with `npm install @prisma/client@6.19.3` / `npm install -D prisma@6.19.3`.
 - **`tsconfig.json`'s `moduleResolution` is `"bundler"`, not `"node"`.** TypeScript 7.0.2 (installed in Task 1) rejects `"node"` with `TS5108: Option 'moduleResolution=node10' has been removed`.
+- **Vitest 4.1.10 rejects arrow functions passed to `vi.fn().mockImplementation()` when the mock is used as a constructor** (`new (arrow fn)` is invalid JS). Use a regular `function` expression instead in any test that mocks a class via `vi.mock`.
+- **`vitest.config.ts` sets `fileParallelism: false`** (added in Task 8). Every route test calls the real-DB `resetDb()` helper against one shared Postgres test database with no per-file isolation; running test files in parallel races those deletes. This serializes files (tests within a file already ran sequentially) — expect slower full-suite runs, not a functional issue.
+- **Task 8's original reference code left `Order.status` at `AI_DRAFTING` forever on a Gemini failure** (Draft.status correctly went to `FAILED`, but Order had no terminal failure signal). Fixed by reverting `Order.status` to the existing `RECEIVED` enum value in the same catch block — no schema/migration change. Any later task's route that can fail after setting `Order.status` to a non-terminal value should follow the same pattern: write a terminal or revertible status for both the `Draft`/`Document` and the `Order` before responding.
 
 ---
 

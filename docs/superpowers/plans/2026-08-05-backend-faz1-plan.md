@@ -14,10 +14,18 @@
 - Development uses the **free Gemini tier** (AI Studio key). Do not add any code that assumes billing/Vertex AI. This is a data-privacy constraint or the operator's account, not something to test for.
 - Environment is **local only** — Postgres runs via Docker Compose, no cloud deploy config in this phase.
 - Terminology: use `VerifiedProfessional`, never `SwornTranslator`/`yeminli_tercuman`, in code, table names, or API fields.
-- Multi-tenant fields (`tenantId`) must exist on every tenant-scoped model even though only one `Tenant` row exists in this phase.
+- Multi-tenant fields (`tenantId`) must exist on every tenant-scoped model even though only one `Tenant` row exists in this phase. **Decided during Task 2 review:** `Draft`, `FinalTranslation`, and `Payment` intentionally do NOT carry their own `tenantId` — they're scoped via their `Document`/`Order` relation instead. This is accepted (YAGNI for single-tenant Faz 1), not an oversight.
 - Email sending is out of scope — do not add SendGrid/Postmark calls.
 - Payment processing is out of scope — the `Payment` table exists in schema only, no route touches it.
 - Every route that can fail loudly must: never leave an `Order`/`Draft` silently stuck — always write a terminal status (`READY`/`FAILED`) so nothing hangs in an ambiguous state.
+
+## Environment Notes (discovered during Task 2)
+
+This machine's environment required three deviations from the exact values written into Task 2's steps below. Any task/operator re-running those steps verbatim should use these values instead:
+
+- **Postgres host port is `5433`, not `5432`** (port 5432 was already in use by another container on this machine). `docker-compose.yml`, `.env`, `.env.example`, and `.env.test` all use `5433`.
+- **Prisma is pinned to `6.19.3`**, not latest. Prisma 7 removed `datasource.url` support in `schema.prisma` in favor of `prisma.config.ts` + a driver adapter, which is incompatible with this plan's schema syntax. Install with `npm install @prisma/client@6.19.3` / `npm install -D prisma@6.19.3`.
+- **`tsconfig.json`'s `moduleResolution` is `"bundler"`, not `"node"`.** TypeScript 7.0.2 (installed in Task 1) rejects `"node"` with `TS5108: Option 'moduleResolution=node10' has been removed`.
 
 ---
 

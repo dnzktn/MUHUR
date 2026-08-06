@@ -16,6 +16,7 @@
   "type": "commonjs",
   "dependencies": {
     "@fastify/multipart": "^10.1.0",
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
     "fastify": "^5.11.2",

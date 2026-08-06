@@ -104,6 +104,7 @@ export async function documentsRoutes(app: FastifyInstance, opts: DocumentsRoute
       await prisma.order.update({ where: { id: order.id }, data: { status: "DRAFTS_READY" } });
     } catch (err) {
       await prisma.draft.update({ where: { id: draft.id }, data: { status: "FAILED" } });
+      await prisma.order.update({ where: { id: order.id }, data: { status: "RECEIVED" } });
       request.log.error(err, "Gemini translation failed");
       return reply.code(502).send({ error: "AI translation failed, please retry" });
     }

@@ -139,5 +139,8 @@ describe("POST /api/documents", () => {
     const drafts = await prisma.draft.findMany();
     expect(drafts).toHaveLength(1);
     expect(drafts[0].status).toBe("FAILED");
+
+    const order = await prisma.order.findFirst({ where: { customerId: customer.id } });
+    expect(order?.status).toBe("RECEIVED");
   });
 });

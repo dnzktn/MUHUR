@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 export interface AuthTokenPayload {
   professionalId: string;
   email: string;
+  tenantId: string;
 }
 
 function getSecret(): string {

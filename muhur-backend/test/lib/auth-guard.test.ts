@@ -34,7 +34,7 @@ describe("requireAuth", () => {
 
   it("allows a valid token and attaches the professional payload", async () => {
     const app = buildTestApp();
-    const token = signAuthToken({ professionalId: "abc-123", email: "yagmur@muhur.com" });
+    const token = signAuthToken({ professionalId: "abc-123", email: "yagmur@muhur.com", tenantId: "tenant-1" });
     const res = await app.inject({
       method: "GET",
       url: "/protected",

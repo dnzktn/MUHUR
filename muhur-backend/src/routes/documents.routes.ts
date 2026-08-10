@@ -129,7 +129,9 @@ export async function documentsRoutes(app: FastifyInstance, opts: DocumentsRoute
         return reply.code(400).send({ error: "context is required" });
       }
 
-      const document = await prisma.document.findUnique({ where: { id } });
+      const document = await prisma.document.findFirst({
+        where: { id, tenantId: request.professional!.tenantId },
+      });
       if (!document) {
         return reply.code(404).send({ error: "Document not found" });
       }

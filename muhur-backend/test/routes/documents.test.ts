@@ -185,15 +185,16 @@ describe("POST /api/documents/:id/suggest", () => {
   });
 
   async function seedDocumentAndProfessional() {
+    const unique = crypto.randomUUID();
     const tenant = await prisma.tenant.create({ data: { name: "Mühür" } });
     const customer = await prisma.customer.create({
-      data: { tenantId: tenant.id, name: "Demo Müşteri", email: "demo@musteri.com" },
+      data: { tenantId: tenant.id, name: "Demo Müşteri", email: `demo-${unique}@musteri.com` },
     });
     const professional = await prisma.verifiedProfessional.create({
       data: {
         tenantId: tenant.id,
         name: "Yağmur",
-        email: "yagmur@muhur.com",
+        email: `yagmur-${unique}@muhur.com`,
         passwordHash: await hashPassword("changeme123"),
         languages: ["TR", "EN"],
       },
@@ -229,7 +230,11 @@ describe("POST /api/documents/:id/suggest", () => {
 
   it("returns suggestions for an authenticated request", async () => {
     const { document, professional } = await seedDocumentAndProfessional();
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const geminiService = fakeProvider({
       suggest: vi.fn().mockResolvedValue(["Hello", "Hi", "Greetings"]),
     });
@@ -248,7 +253,11 @@ describe("POST /api/documents/:id/suggest", () => {
 
   it("returns 404 for an unknown document id", async () => {
     const { professional } = await seedDocumentAndProfessional();
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const app = buildApp({ geminiService: fakeProvider() });
 
     const res = await app.inject({
@@ -261,9 +270,33 @@ describe("POST /api/documents/:id/suggest", () => {
     expect(res.statusCode).toBe(404);
   });
 
+  it("returns 404 when the document belongs to a different tenant", async () => {
+    const { document: documentInTenantB } = await seedDocumentAndProfessional();
+    const { professional: professionalInTenantA } = await seedDocumentAndProfessional();
+    const token = signAuthToken({
+      professionalId: professionalInTenantA.id,
+      email: professionalInTenantA.email,
+      tenantId: professionalInTenantA.tenantId,
+    });
+    const app = buildApp({ geminiService: fakeProvider() });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/documents/${documentInTenantB.id}/suggest`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { text: "Merhaba", context: "Merhaba dünya" },
+    });
+
+    expect(res.statusCode).toBe(404);
+  });
+
   it("returns 400 when the request body is missing required fields", async () => {
     const { document, professional } = await seedDocumentAndProfessional();
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const app = buildApp({ geminiService: fakeProvider() });
 
     const noBodyRes = await app.inject({

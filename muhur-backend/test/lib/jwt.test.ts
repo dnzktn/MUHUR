@@ -7,14 +7,15 @@ beforeAll(() => {
 
 describe("jwt", () => {
   it("round-trips a valid payload", () => {
-    const token = signAuthToken({ professionalId: "abc-123", email: "yagmur@muhur.com" });
+    const token = signAuthToken({ professionalId: "abc-123", email: "yagmur@muhur.com", tenantId: "tenant-1" });
     const payload = verifyAuthToken(token);
     expect(payload.professionalId).toBe("abc-123");
     expect(payload.email).toBe("yagmur@muhur.com");
+    expect(payload.tenantId).toBe("tenant-1");
   });
 
   it("throws on a tampered token", () => {
-    const token = signAuthToken({ professionalId: "abc-123", email: "yagmur@muhur.com" });
+    const token = signAuthToken({ professionalId: "abc-123", email: "yagmur@muhur.com", tenantId: "tenant-1" });
     expect(() => verifyAuthToken(token + "tamper")).toThrow();
   });
 });

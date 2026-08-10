@@ -59,7 +59,11 @@ describe("GET /api/orders/:id", () => {
 
   it("returns the order with documents and drafts for an authenticated request", async () => {
     const { order, professional } = await seedOrderWithDraft();
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const app = buildApp();
 
     const res = await app.inject({
@@ -86,12 +90,35 @@ describe("GET /api/orders/:id", () => {
         languages: ["TR", "EN"],
       },
     });
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const app = buildApp();
 
     const res = await app.inject({
       method: "GET",
       url: "/api/orders/00000000-0000-0000-0000-000000000000",
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("returns 404 when the order belongs to a different tenant", async () => {
+    const { order: orderInTenantB } = await seedOrderWithDraft();
+    const { professional: professionalInTenantA } = await seedOrderWithDraft();
+    const token = signAuthToken({
+      professionalId: professionalInTenantA.id,
+      email: professionalInTenantA.email,
+      tenantId: professionalInTenantA.tenantId,
+    });
+    const app = buildApp();
+
+    const res = await app.inject({
+      method: "GET",
+      url: `/api/orders/${orderInTenantB.id}`,
       headers: { authorization: `Bearer ${token}` },
     });
 
@@ -111,7 +138,11 @@ describe("PATCH /api/orders/:id/finalize", () => {
   it("creates a FinalTranslation and marks the order approved", async () => {
     const { order, professional } = await seedOrderWithDraft();
     const document = await prisma.document.findFirstOrThrow({ where: { orderId: order.id } });
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const app = buildApp();
 
     const res = await app.inject({
@@ -135,7 +166,11 @@ describe("PATCH /api/orders/:id/finalize", () => {
     const { order: orderA, professional } = await seedOrderWithDraft();
     const { order: orderB } = await seedOrderWithDraft();
     const documentB = await prisma.document.findFirstOrThrow({ where: { orderId: orderB.id } });
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const app = buildApp();
 
     const res = await app.inject({
@@ -150,7 +185,11 @@ describe("PATCH /api/orders/:id/finalize", () => {
 
   it("returns 404 for an unknown order id", async () => {
     const { professional } = await seedOrderWithDraft();
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const app = buildApp();
 
     const res = await app.inject({
@@ -163,10 +202,42 @@ describe("PATCH /api/orders/:id/finalize", () => {
     expect(res.statusCode).toBe(404);
   });
 
+  it("returns 404 when finalizing an order that belongs to a different tenant", async () => {
+    const { order: orderInTenantB } = await seedOrderWithDraft();
+    const documentInTenantB = await prisma.document.findFirstOrThrow({
+      where: { orderId: orderInTenantB.id },
+    });
+    const { professional: professionalInTenantA } = await seedOrderWithDraft();
+    const token = signAuthToken({
+      professionalId: professionalInTenantA.id,
+      email: professionalInTenantA.email,
+      tenantId: professionalInTenantA.tenantId,
+    });
+    const app = buildApp();
+
+    const res = await app.inject({
+      method: "PATCH",
+      url: `/api/orders/${orderInTenantB.id}/finalize`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { documentId: documentInTenantB.id, finalText: "Cross-tenant attempt." },
+    });
+
+    expect(res.statusCode).toBe(404);
+
+    const finalTranslation = await prisma.finalTranslation.findUnique({
+      where: { documentId: documentInTenantB.id },
+    });
+    expect(finalTranslation).toBeNull();
+  });
+
   it("returns 409 and does not create a second FinalTranslation when finalizing twice", async () => {
     const { order, professional } = await seedOrderWithDraft();
     const document = await prisma.document.findFirstOrThrow({ where: { orderId: order.id } });
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const app = buildApp();
 
     const firstRes = await app.inject({
@@ -195,7 +266,11 @@ describe("PATCH /api/orders/:id/finalize", () => {
   it("returns 400 when the request body is missing required fields", async () => {
     const { order, professional } = await seedOrderWithDraft();
     const document = await prisma.document.findFirstOrThrow({ where: { orderId: order.id } });
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     const app = buildApp();
 
     const noBodyRes = await app.inject({

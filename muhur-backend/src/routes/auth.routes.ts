@@ -22,7 +22,11 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(401).send({ error: "Invalid credentials" });
     }
 
-    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
     return reply.send({ token });
   });
 }

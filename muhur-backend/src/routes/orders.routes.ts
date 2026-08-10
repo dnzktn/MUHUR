@@ -6,8 +6,8 @@ export async function ordersRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/orders/:id", { preHandler: requireAuth }, async (request, reply) => {
     const { id } = request.params as { id: string };
 
-    const order = await prisma.order.findUnique({
-      where: { id },
+    const order = await prisma.order.findFirst({
+      where: { id, tenantId: request.professional!.tenantId },
       include: {
         customer: true,
         documents: { include: { drafts: true, finalTranslation: true } },
@@ -38,7 +38,9 @@ export async function ordersRoutes(app: FastifyInstance): Promise<void> {
         return reply.code(400).send({ error: "finalText is required" });
       }
 
-      const order = await prisma.order.findUnique({ where: { id } });
+      const order = await prisma.order.findFirst({
+        where: { id, tenantId: professional.tenantId },
+      });
       if (!order) {
         return reply.code(404).send({ error: "Order not found" });
       }

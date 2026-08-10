@@ -53,10 +53,6 @@ export async function documentsRoutes(app: FastifyInstance, opts: DocumentsRoute
       return reply.code(400).send({ error: "Unknown customerId" });
     }
 
-    const order = await prisma.order.create({
-      data: { tenantId: customer.tenantId, customerId: customer.id, status: "RECEIVED" },
-    });
-
     let sourceFormat: "PDF" | "IMAGE" | "DOCX" | "PASTED_TEXT";
     let extractedText: string | null = null;
 
@@ -73,6 +69,10 @@ export async function documentsRoutes(app: FastifyInstance, opts: DocumentsRoute
         extractedText = await extractDocxText(fileBuffer!);
       }
     }
+
+    const order = await prisma.order.create({
+      data: { tenantId: customer.tenantId, customerId: customer.id, status: "RECEIVED" },
+    });
 
     const document = await prisma.document.create({
       data: {
@@ -118,7 +118,16 @@ export async function documentsRoutes(app: FastifyInstance, opts: DocumentsRoute
     { preHandler: requireAuth },
     async (request, reply) => {
       const { id } = request.params as { id: string };
-      const { text, context } = request.body as { text: string; context: string };
+      const body = request.body as { text?: unknown; context?: unknown } | undefined;
+      const text = body?.text;
+      const context = body?.context;
+
+      if (typeof text !== "string" || text.trim().length === 0) {
+        return reply.code(400).send({ error: "text is required" });
+      }
+      if (typeof context !== "string" || context.trim().length === 0) {
+        return reply.code(400).send({ error: "context is required" });
+      }
 
       const document = await prisma.document.findUnique({ where: { id } });
       if (!document) {

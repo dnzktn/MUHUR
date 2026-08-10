@@ -26,8 +26,17 @@ export async function ordersRoutes(app: FastifyInstance): Promise<void> {
     { preHandler: requireAuth },
     async (request, reply) => {
       const { id } = request.params as { id: string };
-      const { documentId, finalText } = request.body as { documentId: string; finalText: string };
+      const body = request.body as { documentId?: unknown; finalText?: unknown } | undefined;
+      const documentId = body?.documentId;
+      const finalText = body?.finalText;
       const professional = request.professional!;
+
+      if (typeof documentId !== "string" || documentId.trim().length === 0) {
+        return reply.code(400).send({ error: "documentId is required" });
+      }
+      if (typeof finalText !== "string" || finalText.trim().length === 0) {
+        return reply.code(400).send({ error: "finalText is required" });
+      }
 
       const order = await prisma.order.findUnique({ where: { id } });
       if (!order) {
@@ -37,6 +46,13 @@ export async function ordersRoutes(app: FastifyInstance): Promise<void> {
       const document = await prisma.document.findUnique({ where: { id: documentId } });
       if (!document || document.orderId !== id) {
         return reply.code(400).send({ error: "Document does not belong to this order" });
+      }
+
+      const existingFinalTranslation = await prisma.finalTranslation.findUnique({
+        where: { documentId },
+      });
+      if (existingFinalTranslation) {
+        return reply.code(409).send({ error: "Document already has a final translation" });
       }
 
       const finalTranslation = await prisma.finalTranslation.create({

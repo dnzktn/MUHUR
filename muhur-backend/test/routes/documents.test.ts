@@ -116,6 +116,34 @@ describe("POST /api/documents", () => {
     expect(res.statusCode).toBe(400);
   });
 
+  it("does not create an orphan order when the file type is unsupported", async () => {
+    const customer = await seedCustomer();
+    const app = buildApp({ geminiService: fakeProvider() });
+
+    const orderCountBefore = await prisma.order.count();
+
+    const form = new FormData();
+    form.append("customerId", customer.id);
+    form.append("sourceLang", "TR");
+    form.append("targetLang", "EN");
+    form.append("file", Buffer.from("not a real file"), {
+      filename: "belge.txt",
+      contentType: "text/plain",
+    });
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/documents",
+      headers: form.getHeaders(),
+      payload: form.getBuffer(),
+    });
+
+    expect(res.statusCode).toBe(400);
+
+    const orderCountAfter = await prisma.order.count();
+    expect(orderCountAfter).toBe(orderCountBefore);
+  });
+
   it("marks the draft failed and returns 502 when Gemini errors", async () => {
     const customer = await seedCustomer();
     const geminiService = fakeProvider({
@@ -231,5 +259,28 @@ describe("POST /api/documents/:id/suggest", () => {
     });
 
     expect(res.statusCode).toBe(404);
+  });
+
+  it("returns 400 when the request body is missing required fields", async () => {
+    const { document, professional } = await seedDocumentAndProfessional();
+    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const app = buildApp({ geminiService: fakeProvider() });
+
+    const noBodyRes = await app.inject({
+      method: "POST",
+      url: `/api/documents/${document.id}/suggest`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(noBodyRes.statusCode).toBe(400);
+    expect(noBodyRes.json().error).toBeTruthy();
+
+    const missingContextRes = await app.inject({
+      method: "POST",
+      url: `/api/documents/${document.id}/suggest`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { text: "Merhaba" },
+    });
+    expect(missingContextRes.statusCode).toBe(400);
+    expect(missingContextRes.json().error).toBeTruthy();
   });
 });

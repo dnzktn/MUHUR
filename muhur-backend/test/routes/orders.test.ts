@@ -162,4 +162,57 @@ describe("PATCH /api/orders/:id/finalize", () => {
 
     expect(res.statusCode).toBe(404);
   });
+
+  it("returns 409 and does not create a second FinalTranslation when finalizing twice", async () => {
+    const { order, professional } = await seedOrderWithDraft();
+    const document = await prisma.document.findFirstOrThrow({ where: { orderId: order.id } });
+    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const app = buildApp();
+
+    const firstRes = await app.inject({
+      method: "PATCH",
+      url: `/api/orders/${order.id}/finalize`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { documentId: document.id, finalText: "Hello world, final." },
+    });
+    expect(firstRes.statusCode).toBe(201);
+
+    const secondRes = await app.inject({
+      method: "PATCH",
+      url: `/api/orders/${order.id}/finalize`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { documentId: document.id, finalText: "Hello world, final (again)." },
+    });
+
+    expect(secondRes.statusCode).toBe(409);
+    expect(secondRes.json().error).toBeTruthy();
+
+    const finalTranslations = await prisma.finalTranslation.findMany({ where: { documentId: document.id } });
+    expect(finalTranslations).toHaveLength(1);
+    expect(finalTranslations[0].finalText).toBe("Hello world, final.");
+  });
+
+  it("returns 400 when the request body is missing required fields", async () => {
+    const { order, professional } = await seedOrderWithDraft();
+    const document = await prisma.document.findFirstOrThrow({ where: { orderId: order.id } });
+    const token = signAuthToken({ professionalId: professional.id, email: professional.email });
+    const app = buildApp();
+
+    const noBodyRes = await app.inject({
+      method: "PATCH",
+      url: `/api/orders/${order.id}/finalize`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(noBodyRes.statusCode).toBe(400);
+    expect(noBodyRes.json().error).toBeTruthy();
+
+    const missingFinalTextRes = await app.inject({
+      method: "PATCH",
+      url: `/api/orders/${order.id}/finalize`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { documentId: document.id },
+    });
+    expect(missingFinalTextRes.statusCode).toBe(400);
+    expect(missingFinalTextRes.json().error).toBeTruthy();
+  });
 });

@@ -20,7 +20,7 @@ export interface TranslationProvider {
   suggest(input: SuggestInput): Promise<string[]>;
 }
 
-const MODEL_NAME = "gemini-2.0-flash";
+const MODEL_NAME = "gemini-flash-latest";
 
 export class GeminiService implements TranslationProvider {
   private client: GoogleGenerativeAI;

@@ -2247,6 +2247,15 @@ git commit -m "feat: add manual end-to-end test-flow script"
 
 ---
 
+## Final Whole-Branch Review Outcome (2026-08-10)
+
+After all 12 tasks passed individual review, a final whole-branch review found 6 Important-severity issues. Three were clear bugs, fixed immediately (commit `8dcae4d`): an orphan `Order` row could be created before file-type validation; `PATCH /api/orders/:id/finalize` threw an uncaught 500 on a second call instead of a clean rejection (now returns 409 — re-finalizing is rejected, not silently overwritten); and missing required JSON body fields on the `suggest`/`finalize` routes produced 500s instead of 400s. A fourth — no tenant scoping on `GET/PATCH /api/orders/:id` and `POST /api/documents/:id/suggest`, meaning any valid JWT could read/finalize another tenant's data — was fixed by adding `tenantId` to `AuthTokenPayload` and scoping all three lookups by it (commit `d34fcfe`). Two were explicitly deferred by the human, not fixed:
+
+- **Gemini 429 (quota) handling**: the design spec (line 135-136) asks for a distinct "sistem yoğun, tekrar deneyin" message and a backend warning log on 429, as the signal to move off the free tier. This was never implemented — both upload and suggest routes collapse every Gemini failure (429 included) into a generic 502. Deferred to Faz 2.
+- **Original file retention**: `Document.fileUrl` is never populated — the uploaded PDF/image/docx buffer is discarded after extraction/translation, only the extracted text and the AI draft persist. For certified translations this normally matters for audit trail, but the human confirmed this is a deliberate deferral until Faz 2 picks a storage backend (e.g. S3). Not a Faz 1 blocker.
+
+One Minor finding remains open as a known, low-priority gap: the double-finalize 409 check (`orders.routes.ts`) is a read-then-create pattern, not atomic — two truly concurrent finalize requests for the same document could both pass the check and the loser would hit an uncaught `P2002` 500 instead of a clean 409. Low risk given this is a low-concurrency internal tool; worth a `try/catch` backstop in a later pass.
+
 ## Faz 1 Tamamlanma Kriteri
 
 Tüm görevler tamamlandığında: `npx dotenv -e .env.test -- npx vitest run` tüm testleri yeşil geçer, ve Task 12'deki manuel script gerçek bir Gemini yanıtıyla `201` döner. Bu noktada Faz 2'ye (prototip UI'sini bu API'ye bağlama) geçilebilir — ayrı bir spec+plan olarak ele alınmalı.

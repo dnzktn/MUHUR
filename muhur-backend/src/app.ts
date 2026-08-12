@@ -2,6 +2,7 @@ import Fastify, { FastifyInstance } from "fastify";
 import multipart from "@fastify/multipart";
 import { errorHandler } from "./lib/errors";
 import { authRoutes } from "./routes/auth.routes";
+import { customersRoutes } from "./routes/customers.routes";
 import { documentsRoutes } from "./routes/documents.routes";
 import { ordersRoutes } from "./routes/orders.routes";
 import { GeminiService, TranslationProvider } from "./services/gemini.service";
@@ -20,6 +21,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   app.get("/health", async () => ({ status: "ok" }));
 
   app.register(authRoutes);
+  app.register(customersRoutes);
   app.register(documentsRoutes, { geminiService });
   app.register(ordersRoutes);
 

@@ -1,5 +1,7 @@
 import Fastify, { FastifyInstance } from "fastify";
 import multipart from "@fastify/multipart";
+import staticPlugin from "@fastify/static";
+import path from "node:path";
 import { errorHandler } from "./lib/errors";
 import { authRoutes } from "./routes/auth.routes";
 import { customersRoutes } from "./routes/customers.routes";
@@ -17,6 +19,10 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
 
   app.setErrorHandler(errorHandler);
   app.register(multipart);
+
+  app.register(staticPlugin, {
+    root: path.join(__dirname, "..", "public"),
+  });
 
   app.get("/health", async () => ({ status: "ok" }));
 

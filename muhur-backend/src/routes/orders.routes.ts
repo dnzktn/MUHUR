@@ -3,6 +3,25 @@ import { prisma } from "../prisma";
 import { requireAuth } from "../lib/auth-guard";
 
 export async function ordersRoutes(app: FastifyInstance): Promise<void> {
+  app.get("/api/orders", { preHandler: requireAuth }, async (request, reply) => {
+    const tenantId = request.professional!.tenantId;
+
+    const orders = await prisma.order.findMany({
+      where: { tenantId },
+      include: { customer: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return reply.send(
+      orders.map((order) => ({
+        id: order.id,
+        status: order.status,
+        createdAt: order.createdAt,
+        customer: { name: order.customer.name, email: order.customer.email },
+      }))
+    );
+  });
+
   app.get("/api/orders/:id", { preHandler: requireAuth }, async (request, reply) => {
     const { id } = request.params as { id: string };
 

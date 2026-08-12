@@ -291,3 +291,71 @@ describe("PATCH /api/orders/:id/finalize", () => {
     expect(missingFinalTextRes.json().error).toBeTruthy();
   });
 });
+
+describe("GET /api/orders", () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it("rejects requests without a token", async () => {
+    const app = buildApp();
+    const res = await app.inject({ method: "GET", url: "/api/orders" });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("returns only orders belonging to the professional's tenant, newest first", async () => {
+    const { order: orderInTenantA, professional } = await seedOrderWithDraft();
+    const { order: orderInTenantB } = await seedOrderWithDraft();
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
+    const app = buildApp();
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/orders",
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body).toHaveLength(1);
+    expect(body[0].id).toBe(orderInTenantA.id);
+    expect(body[0].customer.name).toBe("Demo Müşteri");
+    expect(body.some((order: { id: string }) => order.id === orderInTenantB.id)).toBe(false);
+  });
+
+  it("returns an empty array when the tenant has no orders", async () => {
+    const tenant = await prisma.tenant.create({ data: { name: "Boş Tenant" } });
+    const professional = await prisma.verifiedProfessional.create({
+      data: {
+        tenantId: tenant.id,
+        name: "Yağmur",
+        email: "yagmur-empty@muhur.com",
+        passwordHash: await hashPassword("changeme123"),
+        languages: ["TR", "EN"],
+      },
+    });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
+    const app = buildApp();
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/orders",
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual([]);
+  });
+});

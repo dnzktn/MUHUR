@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mühür — Çalışma Alanı</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="page">
+    <h1>Çalışma Alanı</h1>
+    <div id="loading">Yükleniyor...</div>
+    <div id="workspace-content" class="hidden">
+      <p><strong>Müşteri:</strong> <span id="customer-name"></span></p>
+      <p><strong>Durum:</strong> <span id="order-status"></span></p>
+      <div class="workspace-columns">
+        <div>
+          <h2>Orijinal Metin</h2>
+          <div id="original-text" class="editable"></div>
+        </div>
+        <div>
+          <h2>Nihai Çeviri (düzenlenebilir)</h2>
+          <div id="final-text" class="editable" contenteditable="true"></div>
+          <button id="suggest-btn" type="button">Seçili Metin İçin Öneri İste</button>
+          <ul id="suggestions" class="suggestions hidden"></ul>
+          <button id="add-signature-btn" type="button">İmza/Tarih Ekle</button>
+          <button id="finalize-btn" type="button">Onayla</button>
+        </div>
+      </div>
+    </div>
+    <div id="error" class="error hidden"></div>
+    <div id="success" class="hidden"></div>
+  </main>
+  <script src="/workspace.js"></script>
+</body>
+</html>

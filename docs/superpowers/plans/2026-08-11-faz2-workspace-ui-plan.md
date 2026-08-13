@@ -1314,3 +1314,12 @@ If every step above passed with no code changes, there's nothing to commit — t
 ## Faz 2 Tamamlanma Kriteri
 
 Tüm görevler tamamlandığında: `npx dotenv -e .env.test -- npx vitest run` tüm testleri yeşil geçer, ve Task 9'daki tarayıcı doğrulaması gerçek bir müşterinin sipariş verip, profesyonelin giriş yapıp, AI taslağını düzenleyip onaylayabildiğini kanıtlar. Bu noktada Faz 3 (e-posta alım/gönderim, ödeme, gerçek prototip tasarımı) ayrı bir spec+plan olarak ele alınabilir.
+
+## Final Whole-Branch Review Outcome (2026-08-13)
+
+Son incelemede 4 Important, 6 Minor bulgu tespit edildi ve hepsi tek bir düzeltme turunda giderildi (commit `dca925c`, scoped re-review temiz): `workspace.js`'te seçim (Range) `await` sonrası değil öncesi klonlanıyor artık (aksi halde gecikmeli bir Gemini yanıtı sırasında seçim değişirse yanlış yere metin eklenebiliyordu); öneri iste akışı seçimin gerçekten "Nihai Çeviri" alanında olduğunu doğruluyor (aksi halde orijinal metin paneline yanlışlıkla ekleme yapılabiliyordu); öneri ve onayla butonlarına 401 (süresi dolmuş token) kontrolü eklendi; ve **halka açık `POST /api/customers`** artık var olan bir müşterinin adını asla üzerine yazmıyor (`update: {}`) — daha önce e-postasını bilen biri başka bir müşterinin görünen adını değiştirebiliyordu. Ayrıca e-posta/ad artık trim+normalize edilip öyle kaydediliyor.
+
+Üç konu bilinçli olarak Faz 3/gerçek deploy öncesine ertelendi (kod değişikliği yapılmadı, sadece not düşüldü):
+- **Çok-kiracılı müşteri e-posta çakışması**: `Customer.email` hâlâ global `@unique`, tenant seçimi `findFirstOrThrow()` ile yapılıyor. İkinci bir tenant eklendiğinde bu, bir tenant'ın sipariş formunun başka bir tenant'ın müşterisini bulup değiştirmesine yol açabilir. Düzeltme: `@@unique([tenantId, email])` migration + istekten tenant çözümleme.
+- **Rate limiting ve dosya boyutu sınırı yok**: `POST /api/customers` ve `POST /api/documents` halka açık ve `@fastify/multipart` sınırsız — yerelde zararsız, gerçek bir yayında otomatikleştirilebilir maliyet/depolama istismarına açık.
+- **Build path**: `app.ts`'teki statik dosya kökü (`path.join(__dirname, "..", "public")`) sadece `tsx` ile çalışıyor; `npm run build` sonrası derlenmiş `dist/` yapısında yanlış klasöre işaret eder (Faz 1'den kalma `start` script'i zaten aynı sorunu taşıyordu). Sadece derlenmiş bir deploy'u etkiler, `tsx`/testleri etkilemez.

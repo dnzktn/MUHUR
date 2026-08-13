@@ -1,6 +1,7 @@
 const token = localStorage.getItem("muhur_token");
 if (!token) {
   window.location.href = "/login.html";
+  throw new Error("Redirecting to login");
 }
 
 async function loadOrders() {

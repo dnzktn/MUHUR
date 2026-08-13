@@ -1,6 +1,7 @@
 const token = localStorage.getItem("muhur_token");
 if (!token) {
   window.location.href = "/login.html";
+  throw new Error("Redirecting to login");
 }
 
 const params = new URLSearchParams(window.location.search);
@@ -18,7 +19,12 @@ function showError(message) {
   errorEl.classList.remove("hidden");
 }
 
+function hideError() {
+  errorEl.classList.add("hidden");
+}
+
 async function loadOrder() {
+  hideError();
   if (!orderId) {
     showError("Sipariş ID'si belirtilmedi.");
     loadingEl.classList.add("hidden");
@@ -53,11 +59,14 @@ async function loadOrder() {
       doc.extractedText || "(orijinal metin yok)";
 
     const readyDraft = doc.drafts.find((draft) => draft.status === "READY");
+    const failedDraft = doc.drafts.find((draft) => draft.status === "FAILED");
     const finalTextEl = document.getElementById("final-text");
     if (doc.finalTranslation) {
       finalTextEl.textContent = doc.finalTranslation.finalText;
     } else if (readyDraft) {
       finalTextEl.textContent = readyDraft.draftText;
+    } else if (failedDraft) {
+      finalTextEl.textContent = "AI taslağı üretilemedi, tekrar deneyin.";
     } else {
       finalTextEl.textContent = "(AI taslağı henüz hazır değil)";
     }
@@ -73,15 +82,28 @@ async function loadOrder() {
 loadOrder();
 
 document.getElementById("suggest-btn").addEventListener("click", async () => {
+  hideError();
+
+  if (!currentDocumentId) {
+    showError("Belge henüz yüklenmedi.");
+    return;
+  }
+
   const selection = window.getSelection();
   const selectedText = selection.toString().trim();
+  const finalTextEl = document.getElementById("final-text");
 
-  if (!selectedText) {
+  if (!selectedText || !finalTextEl.contains(selection.anchorNode)) {
+    showError("Öneri istemek için önce nihai çeviri alanından metin seçin.");
+    return;
+  }
+
+  const range = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+  if (!range) {
     showError("Öneri istemek için önce metin seçin.");
     return;
   }
 
-  const finalTextEl = document.getElementById("final-text");
   const context = finalTextEl.textContent;
 
   try {
@@ -93,12 +115,18 @@ document.getElementById("suggest-btn").addEventListener("click", async () => {
       },
       body: JSON.stringify({ text: selectedText, context }),
     });
+
+    if (res.status === 401) {
+      localStorage.removeItem("muhur_token");
+      window.location.href = "/login.html";
+      return;
+    }
+
     const body = await res.json();
     if (!res.ok) {
       throw new Error(body.error || "Öneri alınamadı.");
     }
 
-    const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
     const suggestionsEl = document.getElementById("suggestions");
     suggestionsEl.innerHTML = "";
 
@@ -129,6 +157,8 @@ document.getElementById("add-signature-btn").addEventListener("click", () => {
 });
 
 document.getElementById("finalize-btn").addEventListener("click", async () => {
+  hideError();
+
   if (!currentDocumentId) {
     return;
   }
@@ -145,12 +175,20 @@ document.getElementById("finalize-btn").addEventListener("click", async () => {
       },
       body: JSON.stringify({ documentId: currentDocumentId, finalText }),
     });
-    const body = await res.json();
+
+    if (res.status === 401) {
+      localStorage.removeItem("muhur_token");
+      window.location.href = "/login.html";
+      return;
+    }
 
     if (res.status === 409) {
       showError("Bu belge zaten onaylanmış.");
+      document.getElementById("finalize-btn").disabled = true;
       return;
     }
+
+    const body = await res.json();
     if (!res.ok) {
       throw new Error(body.error || "Onaylama başarısız.");
     }

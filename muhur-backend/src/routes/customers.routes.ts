@@ -17,12 +17,15 @@ export async function customersRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(400).send({ error: "email is required" });
     }
 
+    const trimmedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+
     const tenant = await prisma.tenant.findFirstOrThrow();
 
     const customer = await prisma.customer.upsert({
-      where: { email },
-      update: { name },
-      create: { tenantId: tenant.id, name, email },
+      where: { email: normalizedEmail },
+      update: {},
+      create: { tenantId: tenant.id, name: trimmedName, email: normalizedEmail },
     });
 
     return reply.code(201).send({ customerId: customer.id });

@@ -1,8 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../prisma";
 import { requireAuth } from "../lib/auth-guard";
+import type { EmailProvider } from "../services/email.service";
 
-export async function ordersRoutes(app: FastifyInstance): Promise<void> {
+interface OrdersRoutesOptions {
+  emailService: EmailProvider;
+}
+
+export async function ordersRoutes(app: FastifyInstance, opts: OrdersRoutesOptions): Promise<void> {
   app.get("/api/orders", { preHandler: requireAuth }, async (request, reply) => {
     const tenantId = request.professional!.tenantId;
 
@@ -87,6 +92,49 @@ export async function ordersRoutes(app: FastifyInstance): Promise<void> {
       await prisma.order.update({ where: { id }, data: { status: "APPROVED" } });
 
       return reply.code(201).send(finalTranslation);
+    }
+  );
+
+  app.post(
+    "/api/orders/:id/send-email",
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const professional = request.professional!;
+
+      const order = await prisma.order.findFirst({
+        where: { id, tenantId: professional.tenantId },
+        include: {
+          customer: true,
+          documents: { include: { finalTranslation: true } },
+        },
+      });
+      if (!order) {
+        return reply.code(404).send({ error: "Order not found" });
+      }
+
+      const finalTranslation = order.documents
+        .map((doc) => doc.finalTranslation)
+        .find((translation) => translation !== null);
+
+      if (!finalTranslation) {
+        return reply.code(400).send({ error: "Order has no final translation yet" });
+      }
+
+      try {
+        await opts.emailService.send({
+          to: order.customer.email,
+          subject: "Çeviri Belgeniz Hazır",
+          text: finalTranslation.finalText,
+        });
+      } catch (err) {
+        request.log.error(err, "Email send failed");
+        return reply.code(502).send({ error: "E-posta gönderilemedi, tekrar deneyin" });
+      }
+
+      await prisma.order.update({ where: { id }, data: { status: "SENT" } });
+
+      return reply.send({ status: "SENT" });
     }
   );
 }

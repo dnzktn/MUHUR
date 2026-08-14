@@ -55,6 +55,10 @@ async function loadOrder() {
 
     document.getElementById("customer-name").textContent = order.customer.name;
     document.getElementById("order-status").textContent = order.status;
+    const sendEmailBtn = document.getElementById("send-email-btn");
+    if (order.status === "APPROVED" || order.status === "SENT") {
+      sendEmailBtn.classList.remove("hidden");
+    }
     document.getElementById("original-text").textContent =
       doc.extractedText || "(orijinal metin yok)";
 
@@ -193,9 +197,38 @@ document.getElementById("finalize-btn").addEventListener("click", async () => {
       throw new Error(body.error || "Onaylama başarısız.");
     }
 
-    successEl.textContent = "Onaylandı. E-posta gönderimi Faz 3'te eklenecek.";
+    successEl.textContent = "Onaylandı.";
     successEl.classList.remove("hidden");
     document.getElementById("finalize-btn").disabled = true;
+    document.getElementById("send-email-btn").classList.remove("hidden");
+  } catch (err) {
+    showError(err.message);
+  }
+});
+
+document.getElementById("send-email-btn").addEventListener("click", async () => {
+  hideError();
+
+  try {
+    const res = await fetch(`/api/orders/${orderId}/send-email`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem("muhur_token");
+      window.location.href = "/login.html";
+      return;
+    }
+
+    const body = await res.json();
+    if (!res.ok) {
+      throw new Error(body.error || "E-posta gönderilemedi.");
+    }
+
+    document.getElementById("order-status").textContent = "SENT";
+    successEl.textContent = "E-posta gönderildi.";
+    successEl.classList.remove("hidden");
   } catch (err) {
     showError(err.message);
   }

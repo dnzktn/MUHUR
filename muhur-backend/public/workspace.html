@@ -7,31 +7,65 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <main class="page">
-    <h1>Çalışma Alanı</h1>
-    <div id="loading">Yükleniyor...</div>
-    <div id="workspace-content" class="hidden">
-      <p><strong>Müşteri:</strong> <span id="customer-name"></span></p>
-      <p><strong>Durum:</strong> <span id="order-status"></span></p>
-      <div class="workspace-columns">
-        <div>
-          <h2>Orijinal Metin</h2>
-          <div id="original-text" class="editable"></div>
+  <div class="panel-shell">
+    <div class="panel-side">
+      <div class="p-logo">Mühür — İç Panel</div>
+      <a class="p-item" href="/orders.html">Siparişler</a>
+      <div class="p-item active">Çalışma alanı</div>
+    </div>
+    <div class="panel-main">
+      <div id="loading">Yükleniyor...</div>
+      <div id="workspace-content" class="hidden">
+        <div class="ws-header">
+          <div>
+            <p class="mono ws-meta"><strong>Müşteri:</strong> <span id="customer-name"></span></p>
+            <h2 class="ws-title">Çeviri çalışma alanı</h2>
+          </div>
+          <div class="badge-row">
+            <span class="source-badge">Kaynak: Web sitesi</span>
+            <span class="source-badge">Durum: <span id="order-status"></span></span>
+          </div>
         </div>
-        <div>
-          <h2>Nihai Çeviri (düzenlenebilir)</h2>
-          <div id="final-text" class="editable" contenteditable="true"></div>
-          <button id="suggest-btn" type="button">Seçili Metin İçin Öneri İste</button>
-          <ul id="suggestions" class="suggestions hidden"></ul>
-          <button id="add-signature-btn" type="button">İmza/Tarih Ekle</button>
-          <button id="finalize-btn" type="button">Onayla</button>
-          <button id="send-email-btn" type="button" class="hidden">E-posta ile Gönder</button>
+
+        <div class="ai-tabs">
+          <button class="ai-tab active" type="button">Gemini</button>
+        </div>
+
+        <div class="ws-grid">
+          <div class="compare-col">
+            <div class="compare-head">Orijinal Metin</div>
+            <div class="compare-body" id="original-text"></div>
+          </div>
+          <div class="compare-col">
+            <div class="compare-head editor-head">
+              <span>Nihai Çeviri (düzenlenebilir)</span>
+            </div>
+            <div class="compare-body editable" id="final-text" contenteditable="true"></div>
+            <div class="ws-toolbar">
+              <button class="mini-btn" id="suggest-btn" type="button">Seçili metin için öneri iste</button>
+              <button class="mini-btn" id="add-signature-btn" type="button">✍ İmza/Tarih ekle</button>
+            </div>
+          </div>
+          <div class="suggest-panel">
+            <div class="compare-head">Öneriler</div>
+            <div class="suggest-body">
+              <ul id="suggestions" class="suggestions hidden"></ul>
+              <p class="suggest-empty" id="suggest-empty">Nihai çeviri metninde bir kelime veya ifade seçip "Seçili metin için öneri iste"ye basın.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="send-box">
+          <div class="panel-actions">
+            <button class="btn accent" id="finalize-btn" type="button">Onayla</button>
+            <button class="btn secondary hidden" id="send-email-btn" type="button">E-posta ile Gönder</button>
+          </div>
         </div>
       </div>
+      <div id="error" class="error hidden"></div>
+      <div id="success" class="hidden"></div>
     </div>
-    <div id="error" class="error hidden"></div>
-    <div id="success" class="hidden"></div>
-  </main>
+  </div>
   <script src="/workspace.js"></script>
 </body>
 </html>

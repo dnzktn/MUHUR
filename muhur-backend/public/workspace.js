@@ -132,7 +132,9 @@ document.getElementById("suggest-btn").addEventListener("click", async () => {
     }
 
     const suggestionsEl = document.getElementById("suggestions");
+    const suggestEmptyEl = document.getElementById("suggest-empty");
     suggestionsEl.innerHTML = "";
+    suggestEmptyEl.classList.add("hidden");
 
     for (const suggestion of body.suggestions) {
       const item = document.createElement("li");

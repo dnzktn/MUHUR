@@ -7,21 +7,26 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <main class="page">
-    <h1>Profesyonel Girişi</h1>
-    <form id="login-form">
-      <label>
-        E-posta
-        <input type="email" id="email" required />
-      </label>
-      <label>
-        Şifre
-        <input type="password" id="password" required />
-      </label>
-      <button type="submit">Giriş Yap</button>
-    </form>
-    <div id="error" class="error hidden"></div>
-  </main>
+  <div class="site-nav">
+    <div class="brand"><h3>Mühür</h3><div class="langs">İÇ PANEL</div></div>
+  </div>
+  <div class="order-wrap narrow">
+    <h2 class="page-title">Profesyonel Girişi</h2>
+    <div class="card">
+      <form id="login-form">
+        <div class="field">
+          <label>E-posta</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="field">
+          <label>Şifre</label>
+          <input type="password" id="password" required />
+        </div>
+        <button type="submit" class="btn accent wide">Giriş Yap</button>
+      </form>
+      <div id="error" class="error hidden"></div>
+    </div>
+  </div>
   <script src="/login.js"></script>
 </body>
 </html>

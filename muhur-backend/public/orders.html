@@ -7,20 +7,26 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <main class="page">
-    <h1>Siparişler</h1>
-    <table id="orders-table">
-      <thead>
-        <tr>
-          <th>Müşteri</th>
-          <th>Durum</th>
-          <th>Tarih</th>
-        </tr>
-      </thead>
-      <tbody id="orders-body"></tbody>
-    </table>
-    <div id="error" class="error hidden"></div>
-  </main>
+  <div class="panel-shell">
+    <div class="panel-side">
+      <div class="p-logo">Mühür — İç Panel</div>
+      <div class="p-item active">Siparişler</div>
+    </div>
+    <div class="panel-main">
+      <h2 class="panel-title">Siparişler</h2>
+      <table id="orders-table">
+        <thead>
+          <tr>
+            <th>Müşteri</th>
+            <th>Durum</th>
+            <th>Tarih</th>
+          </tr>
+        </thead>
+        <tbody id="orders-body"></tbody>
+      </table>
+      <div id="error" class="error hidden"></div>
+    </div>
+  </div>
   <script src="/orders.js"></script>
 </body>
 </html>

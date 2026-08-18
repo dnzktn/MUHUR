@@ -1,3 +1,18 @@
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("file");
+
+dropzone.addEventListener("click", () => fileInput.click());
+
+fileInput.addEventListener("change", () => {
+  if (fileInput.files[0]) {
+    dropzone.textContent = fileInput.files[0].name;
+    dropzone.classList.add("filled");
+  } else {
+    dropzone.textContent = "Dosyayı buraya sürükleyin veya tıklayın";
+    dropzone.classList.remove("filled");
+  }
+});
+
 document.getElementById("order-form").addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -52,6 +67,8 @@ document.getElementById("order-form").addEventListener("submit", async (event) =
     resultBox.textContent = `Siparişiniz alındı. Takip numaranız: ${documentBody.orderId}`;
     resultBox.classList.remove("hidden");
     document.getElementById("order-form").reset();
+    dropzone.textContent = "Dosyayı buraya sürükleyin veya tıklayın";
+    dropzone.classList.remove("filled");
   } catch (err) {
     errorBox.textContent = err.message;
     errorBox.classList.remove("hidden");

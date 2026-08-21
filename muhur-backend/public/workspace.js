@@ -145,6 +145,7 @@ document.getElementById("suggest-btn").addEventListener("click", async () => {
           range.insertNode(document.createTextNode(suggestion));
         }
         suggestionsEl.classList.add("hidden");
+        suggestEmptyEl.classList.remove("hidden");
       });
       suggestionsEl.appendChild(item);
     }

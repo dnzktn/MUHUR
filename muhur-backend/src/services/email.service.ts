@@ -13,14 +13,22 @@ export interface EmailProvider {
 const FROM_ADDRESS = "onboarding@resend.dev";
 
 export class ResendEmailService implements EmailProvider {
-  private client: Resend;
+  private apiKey: string;
+  private client: Resend | null = null;
 
   constructor(apiKey: string) {
-    this.client = new Resend(apiKey);
+    this.apiKey = apiKey;
+  }
+
+  private getClient(): Resend {
+    if (!this.client) {
+      this.client = new Resend(this.apiKey);
+    }
+    return this.client;
   }
 
   async send(input: SendEmailInput): Promise<void> {
-    const result = await this.client.emails.send({
+    const result = await this.getClient().emails.send({
       from: FROM_ADDRESS,
       to: input.to,
       subject: input.subject,

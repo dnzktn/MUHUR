@@ -16,15 +16,15 @@
     <div class="card">
       <form id="order-form">
         <div class="field">
-          <label>Ad Soyad</label>
+          <label for="name">Ad Soyad</label>
           <input type="text" id="name" required />
         </div>
         <div class="field">
-          <label>E-posta</label>
+          <label for="email">E-posta</label>
           <input type="email" id="email" required />
         </div>
         <div class="field">
-          <label>Dil çifti</label>
+          <label for="sourceLang">Dil çifti</label>
           <div class="lang-grid">
             <select id="sourceLang">
               <option value="TR">Türkçe</option>
@@ -40,12 +40,12 @@
           </div>
         </div>
         <div class="field">
-          <label>Belge (PDF, JPG, PNG, DOCX)</label>
+          <label for="file">Belge (PDF, JPG, PNG, DOCX)</label>
           <div class="dropzone" id="dropzone">Dosyayı buraya sürükleyin veya tıklayın</div>
           <input type="file" id="file" accept=".pdf,.jpg,.jpeg,.png,.docx" class="visually-hidden" />
         </div>
         <div class="field">
-          <label>veya Metni Yapıştırın</label>
+          <label for="pastedText">veya Metni Yapıştırın</label>
           <textarea id="pastedText" rows="6"></textarea>
         </div>
         <button type="submit" class="btn accent wide">Siparişi Gönder</button>

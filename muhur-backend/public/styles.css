@@ -84,7 +84,7 @@ button, input, select, textarea { font-family: var(--font-ui); }
 .field { margin-bottom: 20px; }
 .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
 
-select, input[type=text], input[type=email], input[type=password], textarea {
+select, input[type=text], input[type=email], input[type=password], input[type=number], textarea {
   width: 100%; padding: 11px 13px; border: 1px solid var(--line-strong); border-radius: 10px;
   font-size: 14px; background: var(--surface); color: var(--ink);
   transition: border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
@@ -173,6 +173,9 @@ tr[data-order-id] { cursor: pointer; transition: background 140ms var(--ease-out
 
 .send-box { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 20px; }
 .panel-actions { display: flex; gap: 10px; }
+.quote-title { font-size: 15px; margin-bottom: 12px; }
+.quote-row-input { display: flex; gap: 10px; align-items: center; }
+.quote-row-input input[type=number] { max-width: 160px; }
 
 @media (max-width: 900px) {
   .ws-grid { grid-template-columns: 1fr; }

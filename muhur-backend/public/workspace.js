@@ -59,6 +59,10 @@ async function loadOrder() {
     if (order.status === "APPROVED" || order.status === "SENT") {
       sendEmailBtn.classList.remove("hidden");
     }
+    const priceInput = document.getElementById("price-input");
+    if (order.priceTotal && order.priceTotal > 0) {
+      priceInput.value = order.priceTotal;
+    }
     document.getElementById("original-text").textContent =
       doc.extractedText || "(orijinal metin yok)";
 
@@ -231,6 +235,46 @@ document.getElementById("send-email-btn").addEventListener("click", async () => 
 
     document.getElementById("order-status").textContent = "SENT";
     successEl.textContent = "E-posta gönderildi.";
+    successEl.classList.remove("hidden");
+  } catch (err) {
+    showError(err.message);
+  }
+});
+
+document.getElementById("send-quote-btn").addEventListener("click", async () => {
+  hideError();
+
+  const priceInput = document.getElementById("price-input");
+  const priceTotal = Number(priceInput.value);
+
+  if (!priceInput.value || Number.isNaN(priceTotal) || priceTotal <= 0) {
+    showError("Geçerli bir fiyat girin.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/orders/${orderId}/send-quote`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ priceTotal }),
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem("muhur_token");
+      window.location.href = "/login.html";
+      return;
+    }
+
+    const body = await res.json();
+    if (!res.ok) {
+      throw new Error(body.error || "Teklif gönderilemedi.");
+    }
+
+    document.getElementById("order-status").textContent = body.status;
+    successEl.textContent = `Teklif gönderildi: ${body.priceTotal} TL`;
     successEl.classList.remove("hidden");
   } catch (err) {
     showError(err.message);

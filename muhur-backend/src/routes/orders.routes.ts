@@ -137,4 +137,42 @@ export async function ordersRoutes(app: FastifyInstance, opts: OrdersRoutesOptio
       return reply.send({ status: "SENT" });
     }
   );
+
+  app.post(
+    "/api/orders/:id/send-quote",
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const professional = request.professional!;
+      const body = request.body as { priceTotal?: unknown } | undefined;
+      const priceTotal = body?.priceTotal;
+
+      if (typeof priceTotal !== "number" || !Number.isFinite(priceTotal) || priceTotal <= 0) {
+        return reply.code(400).send({ error: "priceTotal must be a positive number" });
+      }
+
+      const order = await prisma.order.findFirst({
+        where: { id, tenantId: professional.tenantId },
+        include: { customer: true },
+      });
+      if (!order) {
+        return reply.code(404).send({ error: "Order not found" });
+      }
+
+      try {
+        await opts.emailService.send({
+          to: order.customer.email,
+          subject: "Çeviri Teklifiniz Hazır",
+          text: `Merhaba, çeviri talebiniz için fiyat teklifimiz: ${priceTotal} TL. Bu teklifi kabul etmek isterseniz bizimle iletişime geçebilirsiniz.`,
+        });
+      } catch (err) {
+        request.log.error(err, "Quote email send failed");
+        return reply.code(502).send({ error: "Teklif e-postası gönderilemedi, tekrar deneyin" });
+      }
+
+      await prisma.order.update({ where: { id }, data: { priceTotal, status: "IN_REVIEW" } });
+
+      return reply.send({ status: "IN_REVIEW", priceTotal });
+    }
+  );
 }

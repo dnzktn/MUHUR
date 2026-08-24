@@ -515,3 +515,172 @@ describe("POST /api/orders/:id/send-email", () => {
     expect(emailService.send).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("POST /api/orders/:id/send-quote", () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  function fakeEmailProvider(overrides: Partial<EmailProvider> = {}): EmailProvider {
+    return {
+      send: vi.fn().mockResolvedValue(undefined),
+      ...overrides,
+    };
+  }
+
+  it("rejects requests without a token", async () => {
+    const { order } = await seedOrderWithDraft();
+    const app = buildApp({ emailService: fakeEmailProvider() });
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      payload: { priceTotal: 360 },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("sends a quote email and updates priceTotal and status", async () => {
+    const { order, professional } = await seedOrderWithDraft();
+    const customer = await prisma.customer.findUniqueOrThrow({ where: { id: order.customerId } });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
+    const emailService = fakeEmailProvider();
+    const app = buildApp({ emailService });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: 360 },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ status: "IN_REVIEW", priceTotal: 360 });
+    expect(emailService.send).toHaveBeenCalledWith({
+      to: customer.email,
+      subject: "Çeviri Teklifiniz Hazır",
+      text: expect.stringContaining("360"),
+    });
+
+    const updatedOrder = await prisma.order.findUnique({ where: { id: order.id } });
+    expect(updatedOrder?.priceTotal).toBe(360);
+    expect(updatedOrder?.status).toBe("IN_REVIEW");
+  });
+
+  it("returns 400 when priceTotal is missing, zero, or negative", async () => {
+    const { order, professional } = await seedOrderWithDraft();
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
+    const app = buildApp({ emailService: fakeEmailProvider() });
+
+    const noBodyRes = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(noBodyRes.statusCode).toBe(400);
+
+    const zeroRes = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: 0 },
+    });
+    expect(zeroRes.statusCode).toBe(400);
+
+    const negativeRes = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: -50 },
+    });
+    expect(negativeRes.statusCode).toBe(400);
+  });
+
+  it("returns 404 when the order belongs to a different tenant", async () => {
+    const { order: orderInTenantB } = await seedOrderWithDraft();
+    const { professional: professionalInTenantA } = await seedOrderWithDraft();
+    const token = signAuthToken({
+      professionalId: professionalInTenantA.id,
+      email: professionalInTenantA.email,
+      tenantId: professionalInTenantA.tenantId,
+    });
+    const app = buildApp({ emailService: fakeEmailProvider() });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/orders/${orderInTenantB.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: 200 },
+    });
+
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("returns 502 and leaves priceTotal/status unchanged when the email provider fails", async () => {
+    const { order, professional } = await seedOrderWithDraft();
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
+    const emailService = fakeEmailProvider({
+      send: vi.fn().mockRejectedValue(new Error("Resend API error")),
+    });
+    const app = buildApp({ emailService });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: 360 },
+    });
+
+    expect(res.statusCode).toBe(502);
+
+    const updatedOrder = await prisma.order.findUnique({ where: { id: order.id } });
+    expect(updatedOrder?.priceTotal).toBe(0);
+    expect(updatedOrder?.status).toBe(order.status);
+  });
+
+  it("allows sending a quote twice — resending with an updated price is not blocked", async () => {
+    const { order, professional } = await seedOrderWithDraft();
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
+    const emailService = fakeEmailProvider();
+    const app = buildApp({ emailService });
+
+    const firstRes = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: 360 },
+    });
+    expect(firstRes.statusCode).toBe(200);
+
+    const secondRes = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: 420 },
+    });
+    expect(secondRes.statusCode).toBe(200);
+    expect(emailService.send).toHaveBeenCalledTimes(2);
+
+    const updatedOrder = await prisma.order.findUnique({ where: { id: order.id } });
+    expect(updatedOrder?.priceTotal).toBe(420);
+  });
+});

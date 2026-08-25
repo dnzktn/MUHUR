@@ -170,9 +170,17 @@ export async function ordersRoutes(app: FastifyInstance, opts: OrdersRoutesOptio
         return reply.code(502).send({ error: "Teklif e-postası gönderilemedi, tekrar deneyin" });
       }
 
-      await prisma.order.update({ where: { id }, data: { priceTotal, status: "IN_REVIEW" } });
+      const statusesEligibleForReview = ["RECEIVED", "AI_DRAFTING", "DRAFTS_READY", "IN_REVIEW"];
+      const nextStatus = statusesEligibleForReview.includes(order.status)
+        ? "IN_REVIEW"
+        : order.status;
 
-      return reply.send({ status: "IN_REVIEW", priceTotal });
+      const updated = await prisma.order.update({
+        where: { id },
+        data: { priceTotal, status: nextStatus },
+      });
+
+      return reply.send({ status: updated.status, priceTotal: updated.priceTotal });
     }
   );
 }

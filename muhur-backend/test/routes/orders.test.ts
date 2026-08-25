@@ -568,10 +568,65 @@ describe("POST /api/orders/:id/send-quote", () => {
       subject: "Çeviri Teklifiniz Hazır",
       text: expect.stringContaining("360"),
     });
+    expect(emailService.send).not.toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining("Hello world") })
+    );
 
     const updatedOrder = await prisma.order.findUnique({ where: { id: order.id } });
     expect(updatedOrder?.priceTotal).toBe(360);
     expect(updatedOrder?.status).toBe("IN_REVIEW");
+  });
+
+  it("updates priceTotal but preserves status when the order is already APPROVED", async () => {
+    const { order, professional } = await seedOrderWithDraft();
+    await prisma.order.update({ where: { id: order.id }, data: { status: "APPROVED" } });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
+    const emailService = fakeEmailProvider();
+    const app = buildApp({ emailService });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: 360 },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ status: "APPROVED", priceTotal: 360 });
+
+    const updatedOrder = await prisma.order.findUnique({ where: { id: order.id } });
+    expect(updatedOrder?.priceTotal).toBe(360);
+    expect(updatedOrder?.status).toBe("APPROVED");
+  });
+
+  it("updates priceTotal but preserves status when the order is already SENT", async () => {
+    const { order, professional } = await seedOrderWithDraft();
+    await prisma.order.update({ where: { id: order.id }, data: { status: "SENT" } });
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
+    const emailService = fakeEmailProvider();
+    const app = buildApp({ emailService });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: 420 },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ status: "SENT", priceTotal: 420 });
+
+    const updatedOrder = await prisma.order.findUnique({ where: { id: order.id } });
+    expect(updatedOrder?.priceTotal).toBe(420);
+    expect(updatedOrder?.status).toBe("SENT");
   });
 
   it("returns 400 when priceTotal is missing, zero, or negative", async () => {

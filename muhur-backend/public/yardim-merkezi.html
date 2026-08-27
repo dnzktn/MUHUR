@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mühür — Sipariş Formu</title>
+  <title>Mühür — Yardım Merkezi</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
@@ -11,47 +11,10 @@
     <div class="brand"><h3>Mühür</h3><div class="langs">TR · EN · FR — YEMİNLİ ÇEVİRİ</div></div>
   </div>
   <div class="order-wrap">
-    <h2 class="page-title">Belgenizi tanımlayın</h2>
-    <p class="page-sub">Belgenizi yükleyin ya da metni yapıştırın, size en kısa sürede dönüş yapalım.</p>
+    <h2 class="page-title">Yardım Merkezi</h2>
+    <p class="page-sub">Sıkça sorulan sorular ve destek kaynakları.</p>
     <div class="card">
-      <form id="order-form">
-        <div class="field">
-          <label for="name">Ad Soyad</label>
-          <input type="text" id="name" required />
-        </div>
-        <div class="field">
-          <label for="email">E-posta</label>
-          <input type="email" id="email" required />
-        </div>
-        <div class="field">
-          <label for="sourceLang">Dil çifti</label>
-          <div class="lang-grid">
-            <select id="sourceLang">
-              <option value="TR">Türkçe</option>
-              <option value="EN">İngilizce</option>
-              <option value="FR">Fransızca</option>
-            </select>
-            <div class="arrow">→</div>
-            <select id="targetLang">
-              <option value="EN">İngilizce</option>
-              <option value="TR">Türkçe</option>
-              <option value="FR">Fransızca</option>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label for="file">Belge (PDF, JPG, PNG, DOCX)</label>
-          <div class="dropzone" id="dropzone">Dosyayı buraya sürükleyin veya tıklayın</div>
-          <input type="file" id="file" accept=".pdf,.jpg,.jpeg,.png,.docx" class="visually-hidden" />
-        </div>
-        <div class="field">
-          <label for="pastedText">veya Metni Yapıştırın</label>
-          <textarea id="pastedText" rows="6"></textarea>
-        </div>
-        <button type="submit" class="btn accent wide">Siparişi Gönder</button>
-      </form>
-      <div id="result" class="hidden"></div>
-      <div id="error" class="error hidden"></div>
+      <p style="color: var(--ink-2); font-size: 14px; line-height: 1.7; margin: 0;">Bu sayfa yakında burada olacak. O zamana kadar sorularınız için <a href="/order-form.html" style="color: var(--accent);">sipariş formu</a> üzerinden bize ulaşabilirsiniz.</p>
     </div>
   </div>
   <footer class="site-footer">

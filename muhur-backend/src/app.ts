@@ -7,6 +7,7 @@ import { authRoutes } from "./routes/auth.routes";
 import { customersRoutes } from "./routes/customers.routes";
 import { documentsRoutes } from "./routes/documents.routes";
 import { ordersRoutes } from "./routes/orders.routes";
+import { quotesRoutes } from "./routes/quotes.routes";
 import { GeminiService, TranslationProvider } from "./services/gemini.service";
 import { EmailProvider, ResendEmailService } from "./services/email.service";
 import { WhatsAppProvider, TwilioWhatsAppService } from "./services/whatsapp.service";
@@ -57,6 +58,14 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     publicBaseUrl,
   });
   app.register(ordersRoutes, { emailService, quoteTokenSecret, publicBaseUrl });
+  app.register(quotesRoutes, {
+    emailService,
+    whatsappService,
+    notifyEmail,
+    notifyWhatsappNumber,
+    quoteTokenSecret,
+    publicBaseUrl,
+  });
 
   return app;
 }

@@ -5,6 +5,7 @@ import { hashPassword } from "../../src/lib/password";
 import { signAuthToken } from "../../src/lib/jwt";
 import { resetDb } from "../helpers/reset-db";
 import type { EmailProvider } from "../../src/services/email.service";
+import { verifyQuoteToken } from "../../src/lib/quote-token";
 
 async function seedOrderWithDraft() {
   const unique = crypto.randomUUID();
@@ -737,5 +738,38 @@ describe("POST /api/orders/:id/send-quote", () => {
 
     const updatedOrder = await prisma.order.findUnique({ where: { id: order.id } });
     expect(updatedOrder?.priceTotal).toBe(420);
+  });
+
+  it("includes valid, verifiable accept and reject links in the quote email", async () => {
+    const { order, professional } = await seedOrderWithDraft();
+    const token = signAuthToken({
+      professionalId: professional.id,
+      email: professional.email,
+      tenantId: professional.tenantId,
+    });
+    const emailService = fakeEmailProvider();
+    const app = buildApp({
+      emailService,
+      quoteTokenSecret: "test-quote-secret",
+      publicBaseUrl: "http://localhost:3000",
+    });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/api/orders/${order.id}/send-quote`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { priceTotal: 360 },
+    });
+
+    expect(res.statusCode).toBe(200);
+
+    const sentText = (emailService.send as ReturnType<typeof vi.fn>).mock.calls[0][0].text as string;
+    const acceptMatch = sentText.match(/accept\?token=([a-f0-9]+)/);
+    const rejectMatch = sentText.match(/reject\?token=([a-f0-9]+)/);
+
+    expect(acceptMatch).not.toBeNull();
+    expect(rejectMatch).not.toBeNull();
+    expect(verifyQuoteToken(order.id, "accept", acceptMatch![1], "test-quote-secret")).toBe(true);
+    expect(verifyQuoteToken(order.id, "reject", rejectMatch![1], "test-quote-secret")).toBe(true);
   });
 });

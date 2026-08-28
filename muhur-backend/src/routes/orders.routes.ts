@@ -2,9 +2,12 @@ import { FastifyInstance } from "fastify";
 import { prisma } from "../prisma";
 import { requireAuth } from "../lib/auth-guard";
 import type { EmailProvider } from "../services/email.service";
+import { signQuoteToken } from "../lib/quote-token";
 
 interface OrdersRoutesOptions {
   emailService: EmailProvider;
+  quoteTokenSecret: string;
+  publicBaseUrl: string;
 }
 
 export async function ordersRoutes(app: FastifyInstance, opts: OrdersRoutesOptions): Promise<void> {
@@ -159,11 +162,18 @@ export async function ordersRoutes(app: FastifyInstance, opts: OrdersRoutesOptio
         return reply.code(404).send({ error: "Order not found" });
       }
 
+      const acceptToken = signQuoteToken(order.id, "accept", opts.quoteTokenSecret);
+      const rejectToken = signQuoteToken(order.id, "reject", opts.quoteTokenSecret);
+      const quoteEmailText = `Merhaba, çeviri talebiniz için fiyat teklifimiz: ${priceTotal} TL.
+
+Teklifi kabul etmek için: ${opts.publicBaseUrl}/api/quotes/${order.id}/accept?token=${acceptToken}
+Teklifi reddetmek için: ${opts.publicBaseUrl}/api/quotes/${order.id}/reject?token=${rejectToken}`;
+
       try {
         await opts.emailService.send({
           to: order.customer.email,
           subject: "Çeviri Teklifiniz Hazır",
-          text: `Merhaba, çeviri talebiniz için fiyat teklifimiz: ${priceTotal} TL. Bu teklifi kabul etmek isterseniz bizimle iletişime geçebilirsiniz.`,
+          text: quoteEmailText,
         });
       } catch (err) {
         request.log.error(err, "Quote email send failed");

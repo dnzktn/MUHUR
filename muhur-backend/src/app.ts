@@ -18,6 +18,7 @@ export interface BuildAppOptions {
   notifyEmail?: string;
   notifyWhatsappNumber?: string;
   publicBaseUrl?: string;
+  quoteTokenSecret?: string;
 }
 
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
@@ -34,6 +35,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const notifyEmail = options.notifyEmail ?? process.env.NOTIFY_EMAIL ?? "";
   const notifyWhatsappNumber = options.notifyWhatsappNumber ?? process.env.NOTIFY_WHATSAPP_NUMBER ?? "";
   const publicBaseUrl = options.publicBaseUrl ?? process.env.PUBLIC_BASE_URL ?? "http://localhost:3000";
+  const quoteTokenSecret = options.quoteTokenSecret ?? process.env.QUOTE_TOKEN_SECRET ?? "";
 
   app.setErrorHandler(errorHandler);
   app.register(multipart);
@@ -54,7 +56,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     notifyWhatsappNumber,
     publicBaseUrl,
   });
-  app.register(ordersRoutes, { emailService });
+  app.register(ordersRoutes, { emailService, quoteTokenSecret, publicBaseUrl });
 
   return app;
 }

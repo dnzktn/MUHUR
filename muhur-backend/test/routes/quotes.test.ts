@@ -110,6 +110,11 @@ describe("GET /api/quotes/:orderId/accept", () => {
 
     expect(res.statusCode).toBe(302);
     expect(res.headers.location).toBe("/quote-invalid.html");
+
+    const updated = await prisma.order.findUnique({ where: { id: order.id } });
+    expect(updated?.status).toBe("APPROVED");
+    expect(emailService.send).not.toHaveBeenCalled();
+    expect(whatsappService.send).not.toHaveBeenCalled();
   });
 });
 
@@ -148,5 +153,32 @@ describe("GET /api/quotes/:orderId/reject", () => {
     expect(emailService.send).toHaveBeenCalledWith(
       expect.objectContaining({ subject: "Teklif Reddedildi" })
     );
+  });
+
+  it("redirects to the invalid page when the order is no longer IN_REVIEW, without notifying again", async () => {
+    const order = await seedOrderInReview();
+    await prisma.order.update({ where: { id: order.id }, data: { status: "APPROVED" } });
+    const { emailService, whatsappService } = fakeProviders();
+    const app = buildApp({
+      emailService,
+      whatsappService,
+      notifyEmail: "yagmur@muhur.com",
+      notifyWhatsappNumber: "+905551234567",
+      quoteTokenSecret: SECRET,
+    });
+    const token = signQuoteToken(order.id, "reject", SECRET);
+
+    const res = await app.inject({
+      method: "GET",
+      url: `/api/quotes/${order.id}/reject?token=${token}`,
+    });
+
+    expect(res.statusCode).toBe(302);
+    expect(res.headers.location).toBe("/quote-invalid.html");
+
+    const updated = await prisma.order.findUnique({ where: { id: order.id } });
+    expect(updated?.status).toBe("APPROVED");
+    expect(emailService.send).not.toHaveBeenCalled();
+    expect(whatsappService.send).not.toHaveBeenCalled();
   });
 });

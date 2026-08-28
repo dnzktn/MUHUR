@@ -22,6 +22,14 @@ export interface BuildAppOptions {
   quoteTokenSecret?: string;
 }
 
+function getQuoteTokenSecretFromEnv(): string {
+  const secret = process.env.QUOTE_TOKEN_SECRET;
+  if (!secret) {
+    throw new Error("QUOTE_TOKEN_SECRET is not set");
+  }
+  return secret;
+}
+
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const app = Fastify({ logger: true });
   const geminiService = options.geminiService ?? new GeminiService(process.env.GEMINI_API_KEY ?? "");
@@ -36,7 +44,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const notifyEmail = options.notifyEmail ?? process.env.NOTIFY_EMAIL ?? "";
   const notifyWhatsappNumber = options.notifyWhatsappNumber ?? process.env.NOTIFY_WHATSAPP_NUMBER ?? "";
   const publicBaseUrl = options.publicBaseUrl ?? process.env.PUBLIC_BASE_URL ?? "http://localhost:3000";
-  const quoteTokenSecret = options.quoteTokenSecret ?? process.env.QUOTE_TOKEN_SECRET ?? "";
+  const quoteTokenSecret = options.quoteTokenSecret ?? getQuoteTokenSecretFromEnv();
 
   app.setErrorHandler(errorHandler);
   app.register(multipart);

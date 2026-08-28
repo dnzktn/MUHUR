@@ -12,6 +12,10 @@ export function verifyQuoteToken(
   token: string,
   secret: string
 ): boolean {
+  if (!/^[0-9a-f]{64}$/.test(token)) {
+    return false;
+  }
+
   const expected = signQuoteToken(orderId, action, secret);
   const expectedBuf = Buffer.from(expected, "hex");
   const tokenBuf = Buffer.from(token, "hex");

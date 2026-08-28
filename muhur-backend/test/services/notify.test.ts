@@ -45,4 +45,26 @@ describe("notifyProfessional", () => {
     expect(results[0].status).toBe("fulfilled");
     expect(results[1].status).toBe("rejected");
   });
+
+  it("times out a channel that never resolves, rather than hanging forever", async () => {
+    vi.useFakeTimers();
+    const emailService: EmailProvider = { send: vi.fn().mockResolvedValue(undefined) };
+    const whatsappService: WhatsAppProvider = { send: vi.fn(() => new Promise<void>(() => {})) };
+
+    const resultsPromise = notifyProfessional(
+      emailService,
+      whatsappService,
+      "yagmur@muhur.com",
+      "+905551234567",
+      { subject: "Test", body: "Test body" }
+    );
+
+    await vi.advanceTimersByTimeAsync(5000);
+    const results = await resultsPromise;
+
+    expect(results[0].status).toBe("fulfilled");
+    expect(results[1].status).toBe("rejected");
+
+    vi.useRealTimers();
+  });
 });

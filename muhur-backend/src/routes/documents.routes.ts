@@ -128,11 +128,12 @@ export async function documentsRoutes(app: FastifyInstance, opts: DocumentsRoute
         body: `Yeni sipariş: ${customer.name} — ${sourceLang}→${targetLang}. Panelden incele: ${opts.publicBaseUrl}/workspace.html?order=${order.id}`,
       }
     );
-    for (const result of notifyResults) {
+    const notificationChannels = ["email", "whatsapp"] as const;
+    notifyResults.forEach((result, index) => {
       if (result.status === "rejected") {
-        request.log.error(result.reason, "Professional notification failed");
+        request.log.error(result.reason, `Professional notification failed (${notificationChannels[index]})`);
       }
-    }
+    });
 
     return reply.code(201).send({ orderId: order.id, documentId: document.id, draftId: draft.id });
   });

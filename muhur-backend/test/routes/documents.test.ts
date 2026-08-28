@@ -7,6 +7,8 @@ import { resetDb } from "../helpers/reset-db";
 import type { TranslationProvider } from "../../src/services/gemini.service";
 import { signAuthToken } from "../../src/lib/jwt";
 import { hashPassword } from "../../src/lib/password";
+import type { EmailProvider } from "../../src/services/email.service";
+import type { WhatsAppProvider } from "../../src/services/whatsapp.service";
 
 function fakeProvider(overrides: Partial<TranslationProvider> = {}): TranslationProvider {
   return {
@@ -35,7 +37,11 @@ describe("POST /api/documents", () => {
   it("creates an order, document, and ready draft from pasted text", async () => {
     const customer = await seedCustomer();
     const geminiService = fakeProvider();
-    const app = buildApp({ geminiService });
+    const app = buildApp({
+      geminiService,
+      emailService: { send: vi.fn().mockResolvedValue(undefined) },
+      whatsappService: { send: vi.fn().mockResolvedValue(undefined) },
+    });
 
     const form = new FormData();
     form.append("customerId", customer.id);
@@ -64,7 +70,11 @@ describe("POST /api/documents", () => {
   it("extracts text from an uploaded docx file before translating", async () => {
     const customer = await seedCustomer();
     const geminiService = fakeProvider();
-    const app = buildApp({ geminiService });
+    const app = buildApp({
+      geminiService,
+      emailService: { send: vi.fn().mockResolvedValue(undefined) },
+      whatsappService: { send: vi.fn().mockResolvedValue(undefined) },
+    });
 
     const docxDoc = new DocxDocument({
       sections: [{ children: [new Paragraph({ children: [new TextRun("Doğum belgesi")] })] }],
@@ -95,6 +105,76 @@ describe("POST /api/documents", () => {
     expect(geminiService.translate).toHaveBeenCalledWith(
       expect.objectContaining({ text: "Doğum belgesi" })
     );
+  });
+
+  it("notifies the professional by email and WhatsApp after a successful translation", async () => {
+    const customer = await seedCustomer();
+    const geminiService = fakeProvider();
+    const emailService: EmailProvider = { send: vi.fn().mockResolvedValue(undefined) };
+    const whatsappService: WhatsAppProvider = { send: vi.fn().mockResolvedValue(undefined) };
+    const app = buildApp({
+      geminiService,
+      emailService,
+      whatsappService,
+      notifyEmail: "yagmur@muhur.com",
+      notifyWhatsappNumber: "+905551234567",
+      publicBaseUrl: "http://localhost:3000",
+    });
+
+    const form = new FormData();
+    form.append("customerId", customer.id);
+    form.append("sourceLang", "TR");
+    form.append("targetLang", "EN");
+    form.append("pastedText", "Bu belge nüfus cüzdanı örneğidir.");
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/documents",
+      headers: form.getHeaders(),
+      payload: form.getBuffer(),
+    });
+
+    expect(res.statusCode).toBe(201);
+    const body = res.json();
+
+    expect(emailService.send).toHaveBeenCalledWith({
+      to: "yagmur@muhur.com",
+      subject: "Yeni Sipariş",
+      text: expect.stringContaining(`http://localhost:3000/workspace.html?order=${body.orderId}`),
+    });
+    expect(whatsappService.send).toHaveBeenCalledWith({
+      to: "+905551234567",
+      text: expect.stringContaining("Demo Müşteri"),
+    });
+  });
+
+  it("still returns 201 even if both notification channels fail", async () => {
+    const customer = await seedCustomer();
+    const geminiService = fakeProvider();
+    const emailService: EmailProvider = { send: vi.fn().mockRejectedValue(new Error("Resend down")) };
+    const whatsappService: WhatsAppProvider = { send: vi.fn().mockRejectedValue(new Error("Twilio down")) };
+    const app = buildApp({
+      geminiService,
+      emailService,
+      whatsappService,
+      notifyEmail: "yagmur@muhur.com",
+      notifyWhatsappNumber: "+905551234567",
+    });
+
+    const form = new FormData();
+    form.append("customerId", customer.id);
+    form.append("sourceLang", "TR");
+    form.append("targetLang", "EN");
+    form.append("pastedText", "Bu belge nüfus cüzdanı örneğidir.");
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/documents",
+      headers: form.getHeaders(),
+      payload: form.getBuffer(),
+    });
+
+    expect(res.statusCode).toBe(201);
   });
 
   it("returns 400 when neither file nor pastedText is provided", async () => {

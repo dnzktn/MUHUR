@@ -9,16 +9,31 @@ import { documentsRoutes } from "./routes/documents.routes";
 import { ordersRoutes } from "./routes/orders.routes";
 import { GeminiService, TranslationProvider } from "./services/gemini.service";
 import { EmailProvider, ResendEmailService } from "./services/email.service";
+import { WhatsAppProvider, TwilioWhatsAppService } from "./services/whatsapp.service";
 
 export interface BuildAppOptions {
   geminiService?: TranslationProvider;
   emailService?: EmailProvider;
+  whatsappService?: WhatsAppProvider;
+  notifyEmail?: string;
+  notifyWhatsappNumber?: string;
+  publicBaseUrl?: string;
 }
 
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const app = Fastify({ logger: true });
   const geminiService = options.geminiService ?? new GeminiService(process.env.GEMINI_API_KEY ?? "");
   const emailService = options.emailService ?? new ResendEmailService(process.env.RESEND_API_KEY ?? "");
+  const whatsappService =
+    options.whatsappService ??
+    new TwilioWhatsAppService(
+      process.env.TWILIO_ACCOUNT_SID ?? "",
+      process.env.TWILIO_AUTH_TOKEN ?? "",
+      process.env.TWILIO_WHATSAPP_FROM ?? ""
+    );
+  const notifyEmail = options.notifyEmail ?? process.env.NOTIFY_EMAIL ?? "";
+  const notifyWhatsappNumber = options.notifyWhatsappNumber ?? process.env.NOTIFY_WHATSAPP_NUMBER ?? "";
+  const publicBaseUrl = options.publicBaseUrl ?? process.env.PUBLIC_BASE_URL ?? "http://localhost:3000";
 
   app.setErrorHandler(errorHandler);
   app.register(multipart);
@@ -31,7 +46,14 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
 
   app.register(authRoutes);
   app.register(customersRoutes);
-  app.register(documentsRoutes, { geminiService });
+  app.register(documentsRoutes, {
+    geminiService,
+    emailService,
+    whatsappService,
+    notifyEmail,
+    notifyWhatsappNumber,
+    publicBaseUrl,
+  });
   app.register(ordersRoutes, { emailService });
 
   return app;

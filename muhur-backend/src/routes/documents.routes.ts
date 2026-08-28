@@ -3,9 +3,17 @@ import { prisma } from "../prisma";
 import { extractDocxText } from "../services/extraction.service";
 import type { TranslationProvider } from "../services/gemini.service";
 import { requireAuth } from "../lib/auth-guard";
+import type { EmailProvider } from "../services/email.service";
+import type { WhatsAppProvider } from "../services/whatsapp.service";
+import { notifyProfessional } from "../services/notify.service";
 
 interface DocumentsRoutesOptions {
   geminiService: TranslationProvider;
+  emailService: EmailProvider;
+  whatsappService: WhatsAppProvider;
+  notifyEmail: string;
+  notifyWhatsappNumber: string;
+  publicBaseUrl: string;
 }
 
 const MIME_TO_FORMAT: Record<string, "PDF" | "IMAGE" | "DOCX"> = {
@@ -108,6 +116,22 @@ export async function documentsRoutes(app: FastifyInstance, opts: DocumentsRoute
       await prisma.order.update({ where: { id: order.id }, data: { status: "RECEIVED" } });
       request.log.error(err, "Gemini translation failed");
       return reply.code(502).send({ error: "AI translation failed, please retry" });
+    }
+
+    const notifyResults = await notifyProfessional(
+      opts.emailService,
+      opts.whatsappService,
+      opts.notifyEmail,
+      opts.notifyWhatsappNumber,
+      {
+        subject: "Yeni Sipariş",
+        body: `Yeni sipariş: ${customer.name} — ${sourceLang}→${targetLang}. Panelden incele: ${opts.publicBaseUrl}/workspace.html?order=${order.id}`,
+      }
+    );
+    for (const result of notifyResults) {
+      if (result.status === "rejected") {
+        request.log.error(result.reason, "Professional notification failed");
+      }
     }
 
     return reply.code(201).send({ orderId: order.id, documentId: document.id, draftId: draft.id });

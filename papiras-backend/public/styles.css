@@ -364,3 +364,38 @@ tr[data-order-id] { cursor: pointer; transition: background 140ms var(--ease-out
   .page-hero { padding: 36px 20px 4px; }
   .page-hero h1 { font-size: 26px; }
 }
+
+/* ---------- WhatsApp floating button ---------- */
+.wa-fab {
+  position: fixed; right: 24px; bottom: 24px; z-index: 200;
+  width: 54px; height: 54px; border-radius: 50%; background: #25D366;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+}
+.wa-fab:active { transform: scale(0.94); }
+@media (hover:hover) and (pointer:fine) {
+  .wa-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22); }
+}
+@media (max-width: 640px) {
+  .wa-fab { right: 16px; bottom: 16px; width: 48px; height: 48px; }
+}
+
+/* ---------- language switcher ---------- */
+.lang-switch { display: flex; gap: 2px; font-size: 12.5px; }
+.lang-switch a {
+  padding: 5px 9px; border-radius: 6px; color: var(--ink-2);
+  transition: background 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+.lang-switch a.current { color: var(--ink); font-weight: 600; background: var(--surface-2); }
+@media (hover:hover) and (pointer:fine) { .lang-switch a:not(.current):hover { background: var(--surface-2); } }
+
+/* ---------- solutions hub grid (belgeler / kullanım alanları / sektörler) ---------- */
+.hub-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.hub-card {
+  border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--surface);
+  font-size: 13.5px; font-weight: 500; color: var(--ink); text-align: center;
+  transition: border-color 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+@media (hover:hover) and (pointer:fine) { .hub-card:hover { border-color: var(--accent); transform: translateY(-2px); } }
+@media (max-width: 900px) { .hub-grid { grid-template-columns: repeat(2, 1fr); } }

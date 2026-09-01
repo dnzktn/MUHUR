@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Papiras — Formulaire de commande</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="site-nav">
+    <div class="brand"><a href="/fr/"><h3>Papiras</h3></a></div>
+    <div class="lang-switch">
+      <a href="/order-form.html">TR</a>
+      <a href="/en/order-form.html">EN</a>
+      <a href="/fr/order-form.html" class="current">FR</a>
+    </div>
+  </div>
+  <div class="order-wrap">
+    <h2 class="page-title">Décrivez votre document</h2>
+    <p class="page-sub">Envoyez votre document ou collez le texte, nous vous répondrons rapidement.</p>
+    <div class="card">
+      <form id="order-form">
+        <div class="field">
+          <label for="name">Nom complet</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="field">
+          <label for="sourceLang">Paire de langues</label>
+          <div class="lang-grid">
+            <select id="sourceLang">
+              <option value="TR">Turc</option>
+              <option value="EN">Anglais</option>
+              <option value="FR">Français</option>
+            </select>
+            <div class="arrow">→</div>
+            <select id="targetLang">
+              <option value="EN">Anglais</option>
+              <option value="TR">Turc</option>
+              <option value="FR">Français</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="file">Document (PDF, JPG, PNG, DOCX)</label>
+          <div class="dropzone" id="dropzone">Glissez un fichier ici ou cliquez pour envoyer</div>
+          <input type="file" id="file" accept=".pdf,.jpg,.jpeg,.png,.docx" class="visually-hidden" />
+        </div>
+        <div class="field">
+          <label for="pastedText">ou collez le texte</label>
+          <textarea id="pastedText" rows="6"></textarea>
+        </div>
+        <button type="submit" class="btn accent wide">Envoyer la commande</button>
+      </form>
+      <div id="result" class="hidden"></div>
+      <div id="error" class="error hidden"></div>
+    </div>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>Papiras</h3>
+        <p>Service de traduction rapide et fiable.<br />Une qualité en laquelle vous pouvez avoir confiance.</p>
+        <div class="footer-contact">
+          <div>📞 XX XXX XX XX</div>
+          <div>✉️ xx@gmail.com</div>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <a href="/fr/order-form.html">Traduction assermentée</a>
+        <a href="/fr/order-form.html">Traduction standard</a>
+        <a href="/fiyatlandirma.html">Tarifs</a>
+      </div>
+      <div class="footer-col">
+        <h4>Solutions</h4>
+        <a href="/dile-gore.html">Par langue</a>
+        <a href="/belgeye-gore.html">Par document</a>
+        <a href="/kullanim-alanina-gore.html">Par usage</a>
+        <a href="/sektorler.html">Par secteur</a>
+      </div>
+      <div class="footer-col">
+        <h4>Entreprise</h4>
+        <a href="/hakkimizda.html">À propos</a>
+        <a href="/iletisim.html">Contact</a>
+        <a href="/referanslar.html">Avis</a>
+      </div>
+      <div class="footer-col">
+        <h4>Ressources</h4>
+        <a href="/yardim-merkezi.html">Centre d'aide</a>
+        <a href="/siparis-sorgulama.html">Suivi de commande</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-legal">
+        <a href="/sartlar.html">Conditions</a>
+        <a href="/iade.html">Remboursements</a>
+        <a href="/gizlilik.html">Confidentialité</a>
+        <a href="/guvenlik.html">Sécurité</a>
+      </div>
+      <div class="footer-copy">© 2026 Papiras</div>
+    </div>
+  </footer>
+  <script src="/whatsapp-widget.js"></script>
+  <script src="/fr/order-form.js"></script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Papiras — Order Form</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="site-nav">
+    <div class="brand"><a href="/en/"><h3>Papiras</h3></a></div>
+    <div class="lang-switch">
+      <a href="/order-form.html">TR</a>
+      <a href="/en/order-form.html" class="current">EN</a>
+      <a href="/fr/order-form.html">FR</a>
+    </div>
+  </div>
+  <div class="order-wrap">
+    <h2 class="page-title">Tell us about your document</h2>
+    <p class="page-sub">Upload your document or paste the text, and we'll get back to you shortly.</p>
+    <div class="card">
+      <form id="order-form">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="field">
+          <label for="sourceLang">Language pair</label>
+          <div class="lang-grid">
+            <select id="sourceLang">
+              <option value="TR">Turkish</option>
+              <option value="EN">English</option>
+              <option value="FR">French</option>
+            </select>
+            <div class="arrow">→</div>
+            <select id="targetLang">
+              <option value="EN">English</option>
+              <option value="TR">Turkish</option>
+              <option value="FR">French</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="file">Document (PDF, JPG, PNG, DOCX)</label>
+          <div class="dropzone" id="dropzone">Drag a file here or click to upload</div>
+          <input type="file" id="file" accept=".pdf,.jpg,.jpeg,.png,.docx" class="visually-hidden" />
+        </div>
+        <div class="field">
+          <label for="pastedText">or Paste Text</label>
+          <textarea id="pastedText" rows="6"></textarea>
+        </div>
+        <button type="submit" class="btn accent wide">Submit Order</button>
+      </form>
+      <div id="result" class="hidden"></div>
+      <div id="error" class="error hidden"></div>
+    </div>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>Papiras</h3>
+        <p>Fast and reliable translation service.<br />Quality you can trust.</p>
+        <div class="footer-contact">
+          <div>📞 XX XXX XX XX</div>
+          <div>✉️ xx@gmail.com</div>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <a href="/en/order-form.html">Certified Translation</a>
+        <a href="/en/order-form.html">Standard Translation</a>
+        <a href="/fiyatlandirma.html">Pricing</a>
+      </div>
+      <div class="footer-col">
+        <h4>Solutions</h4>
+        <a href="/dile-gore.html">By Language</a>
+        <a href="/belgeye-gore.html">By Document</a>
+        <a href="/kullanim-alanina-gore.html">By Use Case</a>
+        <a href="/sektorler.html">By Industry</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="/hakkimizda.html">About</a>
+        <a href="/iletisim.html">Contact</a>
+        <a href="/referanslar.html">Reviews</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="/yardim-merkezi.html">Help Center</a>
+        <a href="/siparis-sorgulama.html">Order Lookup</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-legal">
+        <a href="/sartlar.html">Terms</a>
+        <a href="/iade.html">Refunds</a>
+        <a href="/gizlilik.html">Privacy</a>
+        <a href="/guvenlik.html">Security</a>
+      </div>
+      <div class="footer-copy">© 2026 Papiras</div>
+    </div>
+  </footer>
+  <script src="/whatsapp-widget.js"></script>
+  <script src="/en/order-form.js"></script>
+</body>
+</html>

@@ -50,7 +50,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   app.register(multipart);
 
   app.register(staticPlugin, {
-    root: path.join(__dirname, "..", "public"),
+    root: path.join(process.cwd(), "public"),
   });
 
   app.get("/health", async () => ({ status: "ok" }));

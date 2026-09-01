@@ -10,13 +10,48 @@
   <div class="site-nav">
     <div class="brand"><a href="/"><h3>Papiras</h3></a></div>
   </div>
-  <div class="order-wrap">
-    <h2 class="page-title">İletişim</h2>
-    <p class="page-sub">Bize aşağıdaki kanallardan ulaşabilirsiniz.</p>
-    <div class="card">
-      <p style="color: var(--ink-2); font-size: 14px; line-height: 1.7; margin: 0;">Bu sayfa yakında burada olacak. O zamana kadar sorularınız için <a href="/order-form.html" style="color: var(--accent);">sipariş formu</a> üzerinden bize ulaşabilirsiniz.</p>
+
+  <div class="page-hero">
+    <div class="eyebrow">İletişim</div>
+    <h1>Bize ulaşın</h1>
+    <p class="sub">Sipariş öncesi sorularınız, kurumsal teklif talepleriniz veya mevcut siparişinizle ilgili her konuda buradayız.</p>
+  </div>
+  <div class="section" style="border-top: none;">
+    <div class="contact-grid">
+      <div class="contact-info-card">
+        <div class="contact-row"><div class="lbl">Telefon</div><div class="val">XX XXX XX XX</div></div>
+        <div class="contact-row"><div class="lbl">E-posta</div><div class="val">xx@gmail.com</div></div>
+        <div class="contact-row"><div class="lbl">Çalışma saatleri</div><div class="val">Hafta içi 09:00–18:00</div></div>
+      </div>
+      <div class="card">
+        <form id="contact-form">
+          <div class="field"><label for="contact-name">Ad soyad</label><input type="text" id="contact-name" required /></div>
+          <div class="field"><label for="contact-email">E-posta</label><input type="email" id="contact-email" required /></div>
+          <div class="field">
+            <label for="contact-topic">Konu</label>
+            <select id="contact-topic">
+              <option>Genel soru</option>
+              <option>Kurumsal teklif talebi</option>
+              <option>Mevcut sipariş hakkında</option>
+              <option>Diğer</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom: 8px;"><label for="contact-message">Mesajınız</label><textarea id="contact-message" required></textarea></div>
+          <button class="btn accent wide" type="submit">Mesajı gönder</button>
+        </form>
+        <div class="form-success" id="contact-success">
+          <span>✓</span><span>Mesajınız alındı, en kısa sürede e-posta ile dönüş yapacağız.</span>
+        </div>
+      </div>
     </div>
   </div>
+  <script>
+    document.getElementById("contact-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      document.getElementById("contact-success").classList.add("show");
+      e.target.reset();
+    });
+  </script>
   <footer class="site-footer">
     <div class="footer-grid">
       <div class="footer-brand">
@@ -61,6 +96,5 @@
       <div class="footer-copy">© 2026 Papiras</div>
     </div>
   </footer>
-  <script src="/order-form.js"></script>
 </body>
 </html>

@@ -10,13 +10,25 @@
   <div class="site-nav">
     <div class="brand"><a href="/"><h3>Papiras</h3></a></div>
   </div>
+
+  <div class="page-hero" style="text-align: center;">
+    <div class="eyebrow">Sipariş Sorgulama</div>
+    <h1>Siparişinizin durumunu görün</h1>
+    <p class="sub" style="margin: 0 auto;">Sipariş numaranızı ve e-postanızı girin.</p>
+  </div>
   <div class="order-wrap">
-    <h2 class="page-title">Sipariş Sorgulama</h2>
-    <p class="page-sub">Sipariş durumunuzu buradan takip edebileceksiniz.</p>
-    <div class="card">
-      <p style="color: var(--ink-2); font-size: 14px; line-height: 1.7; margin: 0;">Bu sayfa yakında burada olacak. O zamana kadar sorularınız için <a href="/order-form.html" style="color: var(--accent);">sipariş formu</a> üzerinden bize ulaşabilirsiniz.</p>
+    <div class="card lookup-card">
+      <div class="field"><label for="lookup-order">Sipariş numarası</label><input type="text" id="lookup-order" placeholder="Örn. PP-20260901-014" /></div>
+      <div class="field" style="margin-bottom: 8px;"><label for="lookup-email">E-posta</label><input type="email" id="lookup-email" placeholder="ornek@eposta.com" /></div>
+      <button class="btn accent wide" id="lookup-btn" type="button">Sorgula</button>
+      <p id="lookup-note" class="hidden" style="color: var(--ink-2); font-size: 13px; margin: 14px 0 0;">Bu özellik yakında eklenecek. O zamana kadar siparişinizle ilgili <a href="/iletisim.html" style="color: var(--accent);">İletişim</a> sayfasından bize ulaşabilirsiniz.</p>
     </div>
   </div>
+  <script>
+    document.getElementById("lookup-btn").addEventListener("click", () => {
+      document.getElementById("lookup-note").classList.remove("hidden");
+    });
+  </script>
   <footer class="site-footer">
     <div class="footer-grid">
       <div class="footer-brand">
@@ -61,6 +73,5 @@
       <div class="footer-copy">© 2026 Papiras</div>
     </div>
   </footer>
-  <script src="/order-form.js"></script>
 </body>
 </html>

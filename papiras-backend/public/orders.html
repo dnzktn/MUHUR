@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Papiras — Siparişler</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="panel-shell">
+    <div class="panel-side">
+      <div class="p-logo">Papiras — İç Panel</div>
+      <div class="p-item active">Siparişler</div>
+    </div>
+    <div class="panel-main">
+      <h2 class="panel-title">Siparişler</h2>
+      <table id="orders-table">
+        <thead>
+          <tr>
+            <th>Müşteri</th>
+            <th>Durum</th>
+            <th>Tarih</th>
+          </tr>
+        </thead>
+        <tbody id="orders-body"></tbody>
+      </table>
+      <div id="error" class="error hidden"></div>
+    </div>
+  </div>
+  <script src="/orders.js"></script>
+</body>
+</html>

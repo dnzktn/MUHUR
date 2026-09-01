@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Papiras — Giriş</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="site-nav">
+    <div class="brand"><h3>Papiras</h3><div class="langs">İÇ PANEL</div></div>
+  </div>
+  <div class="order-wrap narrow">
+    <h2 class="page-title">Profesyonel Girişi</h2>
+    <div class="card">
+      <form id="login-form">
+        <div class="field">
+          <label for="email">E-posta</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="field">
+          <label for="password">Şifre</label>
+          <input type="password" id="password" required />
+        </div>
+        <button type="submit" class="btn accent wide">Giriş Yap</button>
+      </form>
+      <div id="error" class="error hidden"></div>
+    </div>
+  </div>
+  <script src="/login.js"></script>
+</body>
+</html>

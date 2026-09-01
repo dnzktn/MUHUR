@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Papiras — Sipariş Formu</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="site-nav">
+    <div class="brand"><h3>Papiras</h3></div>
+  </div>
+  <div class="order-wrap">
+    <h2 class="page-title">Belgenizi tanımlayın</h2>
+    <p class="page-sub">Belgenizi yükleyin ya da metni yapıştırın, size en kısa sürede dönüş yapalım.</p>
+    <div class="card">
+      <form id="order-form">
+        <div class="field">
+          <label for="name">Ad Soyad</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="field">
+          <label for="email">E-posta</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="field">
+          <label for="sourceLang">Dil çifti</label>
+          <div class="lang-grid">
+            <select id="sourceLang">
+              <option value="TR">Türkçe</option>
+              <option value="EN">İngilizce</option>
+              <option value="FR">Fransızca</option>
+            </select>
+            <div class="arrow">→</div>
+            <select id="targetLang">
+              <option value="EN">İngilizce</option>
+              <option value="TR">Türkçe</option>
+              <option value="FR">Fransızca</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="file">Belge (PDF, JPG, PNG, DOCX)</label>
+          <div class="dropzone" id="dropzone">Dosyayı buraya sürükleyin veya tıklayın</div>
+          <input type="file" id="file" accept=".pdf,.jpg,.jpeg,.png,.docx" class="visually-hidden" />
+        </div>
+        <div class="field">
+          <label for="pastedText">veya Metni Yapıştırın</label>
+          <textarea id="pastedText" rows="6"></textarea>
+        </div>
+        <button type="submit" class="btn accent wide">Siparişi Gönder</button>
+      </form>
+      <div id="result" class="hidden"></div>
+      <div id="error" class="error hidden"></div>
+    </div>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>Papiras</h3>
+        <p>Hızlı ve güvenilir yeminli çeviri hizmeti.<br />Güvenebileceğiniz kalite.</p>
+        <div class="footer-contact">
+          <div>📞 XX XXX XX XX</div>
+          <div>✉️ xx@gmail.com</div>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Hizmetler</h4>
+        <a href="/order-form.html">Yeminli Çeviri</a>
+        <a href="/order-form.html">Standart Çeviri</a>
+        <a href="/fiyatlandirma.html">Fiyatlandırma</a>
+      </div>
+      <div class="footer-col">
+        <h4>Çözümler</h4>
+        <a href="/dile-gore.html">Dile Göre</a>
+        <a href="/belgeye-gore.html">Belgeye Göre</a>
+        <a href="/kullanim-alanina-gore.html">Kullanım Alanına Göre</a>
+      </div>
+      <div class="footer-col">
+        <h4>Kurumsal</h4>
+        <a href="/hakkimizda.html">Hakkımızda</a>
+        <a href="/iletisim.html">İletişim</a>
+        <a href="/referanslar.html">Referanslar</a>
+      </div>
+      <div class="footer-col">
+        <h4>Kaynaklar</h4>
+        <a href="/yardim-merkezi.html">Yardım Merkezi</a>
+        <a href="/siparis-sorgulama.html">Sipariş Sorgulama</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-legal">
+        <a href="/sartlar.html">Şartlar</a>
+        <a href="/iade.html">İade</a>
+        <a href="/gizlilik.html">Gizlilik</a>
+        <a href="/guvenlik.html">Güvenlik</a>
+      </div>
+      <div class="footer-copy">© 2026 Papiras</div>
+    </div>
+  </footer>
+  <script src="/order-form.js"></script>
+</body>
+</html>

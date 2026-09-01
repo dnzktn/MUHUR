@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Papiras — Çalışma Alanı</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="panel-shell">
+    <div class="panel-side">
+      <div class="p-logo">Papiras — İç Panel</div>
+      <a class="p-item" href="/orders.html">Siparişler</a>
+      <div class="p-item active">Çalışma alanı</div>
+    </div>
+    <div class="panel-main">
+      <div id="loading">Yükleniyor...</div>
+      <div id="workspace-content" class="hidden">
+        <div class="ws-header">
+          <div>
+            <p class="mono ws-meta"><strong>Müşteri:</strong> <span id="customer-name"></span></p>
+            <h2 class="ws-title">Çeviri çalışma alanı</h2>
+          </div>
+          <div class="badge-row">
+            <span class="source-badge">Kaynak: Web sitesi</span>
+            <span class="source-badge">Durum: <span id="order-status"></span></span>
+          </div>
+        </div>
+
+        <div class="ai-tabs">
+          <button class="ai-tab active" type="button">Gemini</button>
+        </div>
+
+        <div class="ws-grid">
+          <div class="compare-col">
+            <div class="compare-head">Orijinal Metin</div>
+            <div class="compare-body" id="original-text"></div>
+          </div>
+          <div class="compare-col">
+            <div class="compare-head editor-head">
+              <span>Nihai Çeviri (düzenlenebilir)</span>
+            </div>
+            <div class="compare-body editable" id="final-text" contenteditable="true"></div>
+            <div class="ws-toolbar">
+              <button class="mini-btn" id="suggest-btn" type="button">Seçili metin için öneri iste</button>
+              <button class="mini-btn" id="add-signature-btn" type="button">✍ İmza/Tarih ekle</button>
+            </div>
+          </div>
+          <div class="suggest-panel">
+            <div class="compare-head">Öneriler</div>
+            <div class="suggest-body">
+              <ul id="suggestions" class="suggestions hidden"></ul>
+              <p class="suggest-empty" id="suggest-empty">Nihai çeviri metninde bir kelime veya ifade seçip "Seçili metin için öneri iste"ye basın.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="send-box">
+          <h3 class="quote-title">Fiyat Teklifi</h3>
+          <div class="quote-row-input">
+            <label for="price-input">Fiyat (TL)</label>
+            <input type="number" id="price-input" min="0" step="0.01" placeholder="Örn. 360" />
+            <button class="btn secondary" id="send-quote-btn" type="button">Teklifi Gönder</button>
+          </div>
+        </div>
+
+        <div class="send-box">
+          <div class="panel-actions">
+            <button class="btn accent" id="finalize-btn" type="button">Onayla</button>
+            <button class="btn secondary hidden" id="send-email-btn" type="button">E-posta ile Gönder</button>
+          </div>
+        </div>
+      </div>
+      <div id="error" class="error hidden"></div>
+      <div id="success" class="hidden"></div>
+    </div>
+  </div>
+  <script src="/workspace.js"></script>
+</body>
+</html>
